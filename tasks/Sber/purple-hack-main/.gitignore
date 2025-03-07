@@ -1,0 +1,31 @@
+.vscode/
+.idea/
+*.sql
+data/
+jsons/
+tmp.ipynb
+var2.json
+исх.json
+bandits_playground.ipynb
+bandits_playground.py
+result.json
+tmp.py
+same_size.json
+тестовое задание.json
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# vscode
+.vscode
+
+# mac
+.DS_Store
