@@ -147,10 +147,14 @@ class ColorClassifier(nn.Module):
 
 def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs=10):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Используется устройство: {device}")
+    
     model = model.to(device)
+    criterion = criterion.to(device)
     
     best_f1 = 0
     best_model_state = None
+    best_epoch = 0
     
     for epoch in range(num_epochs):
         model.train()
@@ -190,13 +194,39 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, scheduler
         if f1 > best_f1:
             best_f1 = f1
             best_model_state = model.state_dict().copy()
+            best_epoch = epoch
+            # Сохраняем лучшую модель
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'f1_score': f1,
+                'num_colors': len(COLORS),
+                'num_categories': len(CATEGORIES)
+            }, 'best_model.pth')
+            print(f'Сохранена лучшая модель с F1: {f1:.4f} на эпохе {epoch}')
             
         scheduler.step()
         
     return best_model_state
 
+def load_model(model_path):
+    """Загрузка сохраненной модели"""
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Файл модели не найден: {model_path}")
+        
+    checkpoint = torch.load(model_path)
+    model = ColorClassifier(
+        num_colors=checkpoint['num_colors'],
+        num_categories=checkpoint['num_categories']
+    )
+    model.load_state_dict(checkpoint['model_state_dict'])
+    return model
+
 def predict(model, test_loader):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Используется устройство: {device}")
+    
     model = model.to(device)
     model.eval()
     
@@ -226,7 +256,6 @@ def predict(model, test_loader):
     return pd.DataFrame(predictions)
 
 def main():
-    # Проверка существования файлов и директорий
     required_paths = [
         TRAIN_CSV,
         TEST_CSV,
@@ -246,7 +275,6 @@ def main():
     print(f"Исходный размер тренировочного датасета: {len(train_df)}")
     print(f"Исходный размер тестового датасета: {len(test_df)}")
     
-    # Фильтрация записей по существующим файлам
     def check_image_exists(row, data_dir):
         img_path = os.path.join(data_dir, f"{row['id']}.jpg")
         return os.path.exists(img_path)
@@ -257,19 +285,16 @@ def main():
     print(f"\nРазмер тренировочного датасета после фильтрации: {len(train_df)}")
     print(f"Размер тестового датасета после фильтрации: {len(test_df)}")
     
-    # Проверка уникальных цветов в данных
     unique_colors = train_df['target'].unique()
     print("\nУникальные цвета в данных:")
     print(unique_colors)
     
-    # Проверка маппинга цветов
     unknown_colors = [color for color in unique_colors if color not in TRANSLIT_TO_RU]
     if unknown_colors:
         raise ValueError(f"Найдены неизвестные цвета: {unknown_colors}")
     
     print("Все цвета успешно маппятся")
     
-    # Проверяем, остались ли данные после фильтрации
     if len(train_df) == 0:
         raise ValueError("После фильтрации не осталось тренировочных данных!")
     if len(test_df) == 0:
@@ -300,19 +325,28 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
     
-    model = ColorClassifier(len(COLORS), len(CATEGORIES))
+    # Установка устройства
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Используется устройство: {device}")
     
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-    
-    print("Начинаем обучение модели...")
-    best_model_state = train_model(
-        model, train_loader, val_loader, criterion, optimizer, scheduler
-    )
-    
-    print("Загружаем лучшие веса модели...")
-    model.load_state_dict(best_model_state)
+    model_path = 'best_model.pth'
+    if os.path.exists(model_path):
+        print("Загружаем существующую модель...")
+        model = load_model(model_path)
+        model = model.to(device)
+    else:
+        print("Начинаем обучение новой модели...")
+        model = ColorClassifier(len(COLORS), len(CATEGORIES))
+        model = model.to(device)
+        
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.01)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        
+        best_model_state = train_model(
+            model, train_loader, val_loader, criterion, optimizer, scheduler
+        )
+        model.load_state_dict(best_model_state)
     
     print("Делаем предсказания...")
     predictions_df = predict(model, test_loader)
