@@ -11,10 +11,60 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 from tqdm import tqdm
 
-COLORS = ['beige', 'white', 'turquoise', 'burgundy', 'blue', 'yellow', 'green', 
-          'gold', 'brown', 'red', 'orange', 'variegated', 'pink', 'silver', 
-          'gray', 'blue', 'purple', 'black']
-CATEGORIES = ['girls_clothes', 'tables', 'chairs', 'bags']
+# Определение путей к данным
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(CURRENT_DIR, 'data')
+TRAIN_DATA_DIR = os.path.join(DATA_DIR, 'train_data')
+TEST_DATA_DIR = os.path.join(DATA_DIR, 'test_data')
+TRAIN_CSV = os.path.join(DATA_DIR, 'train_data.csv')
+TEST_CSV = os.path.join(DATA_DIR, 'test_data.csv')
+
+# Маппинг транслитерации на русские названия
+TRANSLIT_TO_RU = {
+    'bezhevyi': 'бежевый',
+    'belyi': 'белый',
+    'biryuzovyi': 'бирюзовый',
+    'bordovyi': 'бордовый',
+    'goluboi': 'голубой',
+    'zheltyi': 'желтый',
+    'zelenyi': 'зеленый',
+    'zolotoi': 'золотой',
+    'korichnevyi': 'коричневый',
+    'krasnyi': 'красный',
+    'oranzhevyi': 'оранжевый',
+    'raznocvetnyi': 'разноцветный',
+    'rozovyi': 'розовый',
+    'serebristyi': 'серебряный',
+    'seryi': 'серый',
+    'sinii': 'синий',
+    'fioletovyi': 'фиолетовый',
+    'chernyi': 'черный'
+}
+
+# Маппинг цветов
+COLORS = {
+    'бежевый': 'beige',
+    'белый': 'white',
+    'бирюзовый': 'turquoise',
+    'бордовый': 'burgundy',
+    'голубой': 'blue',
+    'желтый': 'yellow',
+    'зеленый': 'green',
+    'золотой': 'gold',
+    'коричневый': 'brown',
+    'красный': 'red',
+    'оранжевый': 'orange',
+    'разноцветный': 'variegated',
+    'розовый': 'pink',
+    'серебряный': 'silver',
+    'серый': 'gray',
+    'синий': 'blue',
+    'фиолетовый': 'purple',
+    'черный': 'black'
+}
+
+# Категории на русском
+CATEGORIES = ['одежда для девочек', 'столы', 'стулья', 'сумки']
 
 class ProductDataset(Dataset):
     def __init__(self, df, img_dir, transform=None, is_test=False):
@@ -23,7 +73,7 @@ class ProductDataset(Dataset):
         self.transform = transform
         self.is_test = is_test
         self.category_to_idx = {cat: idx for idx, cat in enumerate(CATEGORIES)}
-        self.color_to_idx = {color: idx for idx, color in enumerate(COLORS)}
+        self.color_to_idx = {color: idx for idx, color in enumerate(COLORS.keys())}
         
     def __len__(self):
         return len(self.df)
@@ -39,7 +89,10 @@ class ProductDataset(Dataset):
         category = self.category_to_idx[self.df.iloc[idx]['category']]
         
         if not self.is_test:
-            color = self.color_to_idx[self.df.iloc[idx]['target']]
+            # Конвертируем транслитерацию в русское название
+            color_translit = self.df.iloc[idx]['target']
+            color_ru = TRANSLIT_TO_RU[color_translit]
+            color = self.color_to_idx[color_ru]
             return image, category, color
         
         return image, category, img_id
@@ -129,6 +182,8 @@ def predict(model, test_loader):
     predictions = []
     ids = []
     
+    color_list = list(COLORS.keys())
+    
     with torch.no_grad():
         for images, categories, img_ids in test_loader:
             images = images.to(device)
@@ -138,8 +193,8 @@ def predict(model, test_loader):
             probs = torch.softmax(outputs, dim=1).cpu().numpy()
             
             for img_id, prob in zip(img_ids, probs):
-                pred_dict = {COLORS[i]: float(p) for i, p in enumerate(prob)}
-                pred_color = COLORS[np.argmax(prob)]
+                pred_dict = {color: float(p) for color, p in zip(color_list, prob)}
+                pred_color = color_list[np.argmax(prob)]
                 
                 predictions.append({
                     'id': img_id,
@@ -150,8 +205,38 @@ def predict(model, test_loader):
     return pd.DataFrame(predictions)
 
 def main():
-    train_df = pd.read_csv('train_data.csv')
-    test_df = pd.read_csv('test_data.csv')
+    # Проверка существования файлов и директорий
+    required_paths = [
+        TRAIN_CSV,
+        TEST_CSV,
+        TRAIN_DATA_DIR,
+        TEST_DATA_DIR
+    ]
+    
+    for path in required_paths:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Не найден путь: {path}")
+            
+    print("Все необходимые файлы и директории найдены")
+    
+    train_df = pd.read_csv(TRAIN_CSV)
+    test_df = pd.read_csv(TEST_CSV)
+    
+    print(f"Размер тренировочного датасета: {len(train_df)}")
+    print(f"Размер тестового датасета: {len(test_df)}")
+    
+    # Проверка уникальных цветов в данных
+    unique_colors = train_df['target'].unique()
+    print("\nУникальные цвета в данных:")
+    print(unique_colors)
+    
+    # Проверка маппинга цветов
+    unknown_colors = [color for color in unique_colors if color not in TRANSLIT_TO_RU]
+    if unknown_colors:
+        raise ValueError(f"Найдены неизвестные цвета: {unknown_colors}")
+    
+    print("Все цвета успешно маппятся")
+    
     train_transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.RandomHorizontalFlip(),
@@ -169,26 +254,32 @@ def main():
     ])
     
     train_df, val_df = train_test_split(train_df, test_size=0.2, stratify=train_df['target'])
-    train_dataset = ProductDataset(train_df, 'train_data', transform=train_transform)
-    val_dataset = ProductDataset(val_df, 'train_data', transform=test_transform)
-    test_dataset = ProductDataset(test_df, 'test_data', transform=test_transform, is_test=True)
+    train_dataset = ProductDataset(train_df, TRAIN_DATA_DIR, transform=train_transform)
+    val_dataset = ProductDataset(val_df, TRAIN_DATA_DIR, transform=test_transform)
+    test_dataset = ProductDataset(test_df, TEST_DATA_DIR, transform=test_transform, is_test=True)
+    
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
     
-
     model = ColorClassifier(len(COLORS), len(CATEGORIES))
     
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     
+    print("Начинаем обучение модели...")
     best_model_state = train_model(
         model, train_loader, val_loader, criterion, optimizer, scheduler
     )
+    
+    print("Загружаем лучшие веса модели...")
     model.load_state_dict(best_model_state)
+    
+    print("Делаем предсказания...")
     predictions_df = predict(model, test_loader)
     predictions_df.to_csv('submission.csv', index=False)
+    print("Готово! Результаты сохранены в submission.csv")
 
 if __name__ == '__main__':
-    main()
+    main() 
