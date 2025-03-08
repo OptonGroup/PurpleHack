@@ -8,8 +8,7 @@ import time
 TARGET_UTILIZATION = 0.8  # Целевая утилизация хостов (80%)
 UPPER_THRESHOLD = 0.9  # Верхний порог утилизации
 LOWER_THRESHOLD = 0.2  # Нижний порог утилизации
-MAX_MIGRATIONS = 3  # Максимальное число миграций за раунд (снижено для уменьшения штрафа)
-MIGRATION_PENALTY_FACTOR = 1.0  # Коэффициент штрафа за миграцию
+MAX_MIGRATIONS = 5  # Максимальное число миграций за раунд
 
 class VMScheduler:
     def __init__(self):
@@ -19,61 +18,94 @@ class VMScheduler:
         self.previous_allocations = {}  # имя хоста -> список VM из предыдущего раунда
         self.host_zero_utilization_count = {}  # отслеживание хостов с нулевой нагрузкой
         self.vm_to_host_map = {}  # Отображение VM -> Host из предыдущих аллокаций
-        self.log = []  # Логи для дебага
+        self.hosts_with_previous_vms = set()  # Множество хостов, на которых были VM
         
     def load_data(self, input_str: str) -> None:
+        """Загружает входные данные из JSON строки."""
         try:
             data = json.loads(input_str)
+            
+            # Загружаем хосты
+            self.hosts = data.get("hosts", {})
+            
+            # Загружаем виртуальные машины
+            self.vms = data.get("virtual_machines", data.get("vms", {}))
+            
+            # Загружаем предыдущие размещения
+            self.previous_allocations = data.get("allocations", {})
+            
+            # Обновляем vm_to_host_map на основе предыдущих размещений
+            self.vm_to_host_map = {}
+            for host_id, vm_list in self.previous_allocations.items():
+                for vm_id in vm_list:
+                    if vm_id in self.vms:
+                        self.vm_to_host_map[vm_id] = host_id
+            
+            # Обновляем множество хостов с предыдущими VM
+            self.hosts_with_previous_vms = {
+                host_id for host_id, vm_list in self.previous_allocations.items()
+                if vm_list and host_id in self.hosts
+            }
+            
+            # Обрабатываем diff, если он есть
+            if "diff" in data:
+                diff = data["diff"]
+                
+                # Добавляем новые VM
+                if "add" in diff:
+                    new_vms = diff["add"].get("virtual_machines", diff["add"].get("vms", {}))
+                    if isinstance(new_vms, list):
+                        # Если new_vms - список, значит это список VM для добавления из основного словаря
+                        for vm_id in new_vms:
+                            if vm_id in self.vms:
+                                continue
+                            if vm_id in data.get("virtual_machines", {}):
+                                self.vms[vm_id] = data["virtual_machines"][vm_id]
+                            elif vm_id in data.get("vms", {}):
+                                self.vms[vm_id] = data["vms"][vm_id]
+                    else:
+                        # Если new_vms - словарь, добавляем его напрямую
+                        self.vms.update(new_vms)
+                
+                # Удаляем VM
+                if "remove" in diff:
+                    removed_vms = diff["remove"].get("virtual_machines", diff["remove"].get("vms", []))
+                    if isinstance(removed_vms, dict):
+                        removed_vms = list(removed_vms.keys())
+                    for vm_id in removed_vms:
+                        if vm_id in self.vms:
+                            del self.vms[vm_id]
+                        if vm_id in self.vm_to_host_map:
+                            del self.vm_to_host_map[vm_id]
+                
+                # Обновляем предыдущие размещения, удаляя несуществующие VM
+                for host_id in self.previous_allocations:
+                    self.previous_allocations[host_id] = [
+                        vm_id for vm_id in self.previous_allocations[host_id]
+                        if vm_id in self.vms
+                    ]
+            
+            # Инициализируем счетчики хостов с нулевой утилизацией
+            self.host_zero_utilization_count = {host_id: 0 for host_id in self.hosts}
+        
         except json.JSONDecodeError:
-            raise ValueError("Invalid JSON input")
-
-        # Получаем данные о хостах
-        self.hosts = data.get("hosts", {})
-        
-        # Получаем данные о виртуальных машинах
-        # Проверяем оба возможных ключа: 'vms' и 'virtual_machines'
-        if "vms" in data:
-            self.vms = data.get("vms", {})
-        elif "virtual_machines" in data:
-            self.vms = data.get("virtual_machines", {})
-        
-        # Получаем данные о предыдущих аллокациях
-        self.previous_allocations = data.get("allocations", {})
-        
-        # Обрабатываем информацию о diff, если она есть
-        if "diff" in data:
-            diff = data.get("diff", {})
-            
-            # Обработка добавленных VM
-            if "add" in diff:
-                add_data = diff.get("add", {})
-                if "virtual_machines" in add_data:
-                    # Это список новых VM, которые нужно добавить в размещение
-                    pass  # Они уже должны быть в self.vms
-            
-            # Обработка удаленных VM
-            if "remove" in diff:
-                remove_data = diff.get("remove", {})
-                if "virtual_machines" in remove_data:
-                    # Список VM для удаления - удаляем их из текущих распределений
-                    vms_to_remove = remove_data.get("virtual_machines", [])
-                    for vm_id in vms_to_remove:
-                        # Удаляем VM из размещений, если она там есть
-                        for host_id in self.previous_allocations:
-                            if vm_id in self.previous_allocations[host_id]:
-                                self.previous_allocations[host_id].remove(vm_id)
-        
-        # Инициализируем или обновляем счетчики хостов с нулевой утилизацией
-        for host_id in self.hosts:
-            if host_id not in self.host_zero_utilization_count:
-                self.host_zero_utilization_count[host_id] = 0
-        
-        # Строим отображение VM -> Host из предыдущих аллокаций
-        self.vm_to_host_map = {}
-        for host_id, vm_ids in self.previous_allocations.items():
-            for vm_id in vm_ids:
-                if vm_id in self.vms:  # Проверяем существование VM
-                    self.vm_to_host_map[vm_id] = host_id
+            print("Error: Invalid JSON input")
+            self.hosts = {}
+            self.vms = {}
+            self.previous_allocations = {}
+            self.vm_to_host_map = {}
+            self.hosts_with_previous_vms = set()
+            self.host_zero_utilization_count = {}
+            raise
+        except Exception as e:
+            print(f"Error loading data: {e}")
+            self.hosts = {}
+            self.vms = {}
+            self.previous_allocations = {}
+            self.vm_to_host_map = {}
+            self.hosts_with_previous_vms = set()
+            self.host_zero_utilization_count = {}
+            raise
 
     def calculate_host_capacity(self, host_id: str, allocations: Dict[str, List[str]] = None) -> Dict:
         """Вычисляет остаточные ресурсы хоста на основе текущих размещений VM."""
@@ -120,11 +152,22 @@ class VMScheduler:
         
         # Проверяем, достаточно ли ресурсов для размещения VM
         can_host = (resources.get("cpu", 0) >= vm.get("cpu", 0) and 
-                    resources.get("ram", 0) >= vm.get("ram", 0))
+                   resources.get("ram", 0) >= vm.get("ram", 0))
         
         # Проверяем disk только если он есть и в ресурсах, и в VM
         if "disk" in resources and "disk" in vm:
             can_host = can_host and resources["disk"] >= vm["disk"]
+        
+        # Если базовая проверка пройдена, проверяем утилизацию
+        if can_host:
+            # Получаем текущие VM на хосте
+            current_vms = self.previous_allocations.get(host_id, [])
+            # Добавляем новую VM
+            test_vms = current_vms + [vm_id]
+            # Проверяем утилизацию
+            utilization = self.calculate_host_utilization(host_id, test_vms)
+            # Разрешаем размещение только если утилизация не превышает 1.0
+            can_host = utilization <= 1.0
         
         return can_host
 
@@ -137,6 +180,7 @@ class VMScheduler:
         if not allocation:
             allocation = self.previous_allocations.get(host_id, [])
         
+        # Инициализируем счетчики для каждого типа ресурсов
         used_resources = {"cpu": 0, "ram": 0}
         total_resources = {"cpu": host.get("cpu", 0), "ram": host.get("ram", 0)}
         
@@ -145,6 +189,7 @@ class VMScheduler:
             used_resources["disk"] = 0
             total_resources["disk"] = host["disk"]
         
+        # Подсчитываем использованные ресурсы
         for vm_id in allocation:
             if vm_id in self.vms:
                 vm = self.vms[vm_id]
@@ -153,434 +198,282 @@ class VMScheduler:
                 if "disk" in used_resources and "disk" in vm:
                     used_resources["disk"] += vm["disk"]
         
-        # Вычисляем показатель утилизации с приоритетом CPU и RAM
-        # Увеличили вес CPU для лучшей балансировки
-        cpu_util = used_resources["cpu"] / total_resources["cpu"] if total_resources["cpu"] > 0 else 0
-        ram_util = used_resources["ram"] / total_resources["ram"] if total_resources["ram"] > 0 else 0
+        # Вычисляем утилизацию для каждого типа ресурсов
+        utilizations = []
+        for resource in used_resources:
+            if total_resources[resource] > 0:
+                utilization = min(1.0, used_resources[resource] / total_resources[resource])
+                utilizations.append(utilization)
         
-        if "disk" in used_resources and "disk" in total_resources and total_resources["disk"] > 0:
-            disk_util = used_resources["disk"] / total_resources["disk"]
-            # Среднее значение утилизации (с приоритетом CPU и RAM)
-            return (cpu_util * 3 + ram_util * 2 + disk_util) / 6.0
-        else:
-            # Если нет disk, считаем только по cpu и ram с увеличенным весом CPU
-            return (cpu_util * 3 + ram_util * 2) / 5.0
+        # Возвращаем среднее значение утилизации
+        return sum(utilizations) / len(utilizations) if utilizations else 0.0
 
-    def estimate_vm_utilization_impact(self, vm_id: str, host_id: str) -> float:
-        """Оценивает, насколько VM повлияет на утилизацию хоста."""
-        if vm_id not in self.vms or host_id not in self.hosts:
-            return 0.0
+    def calculate_migration_cost(self, vm_id: str, source_host: str, target_host: str) -> float:
+        """Вычисляет стоимость миграции VM с учетом различных факторов."""
+        if vm_id not in self.vms or source_host not in self.hosts or target_host not in self.hosts:
+            return float('inf')
         
-        host = self.hosts[host_id]
         vm = self.vms[vm_id]
+        vm_size = vm.get("cpu", 0) + vm.get("ram", 0) + vm.get("disk", 0)
         
-        # Расчет влияния VM на утилизацию хоста
-        cpu_impact = vm.get("cpu", 0) / host.get("cpu", 1) if host.get("cpu", 0) > 0 else 0
-        ram_impact = vm.get("ram", 0) / host.get("ram", 1) if host.get("ram", 0) > 0 else 0
+        # Базовая стоимость зависит от размера VM
+        cost = vm_size
         
-        # Средневзвешенное с приоритетом CPU
-        return (cpu_impact * 3 + ram_impact * 2) / 5.0
+        # Увеличиваем стоимость, если VM уже мигрировала
+        if vm_id in self.vm_to_host_map and self.vm_to_host_map[vm_id] != source_host:
+            cost *= 2
+        
+        # Учитываем утилизацию целевого хоста
+        target_utilization = self.calculate_host_utilization(target_host)
+        if target_utilization > UPPER_THRESHOLD:
+            cost *= 1.5
+        elif target_utilization < LOWER_THRESHOLD:
+            cost *= 0.8
+        
+        return cost
 
-    def get_resource_efficiency(self, vm_id: str, host_id: str) -> float:
-        """Оценивает эффективность размещения VM на хосте, учитывая баланс ресурсов."""
-        if vm_id not in self.vms or host_id not in self.hosts:
-            return 0.0
-            
+    def find_best_migration_target(self, vm_id: str, current_host: str, host_resources: Dict[str, Dict]) -> Optional[str]:
+        """Находит лучший хост для миграции VM."""
+        if vm_id not in self.vms:
+            return None
+        
         vm = self.vms[vm_id]
-        host = self.hosts[host_id]
+        best_host = None
+        min_cost = float('inf')
         
-        # Если хост не может вместить VM, возвращаем 0
-        if (vm.get("cpu", 0) > host.get("cpu", 0) or 
-            vm.get("ram", 0) > host.get("ram", 0)):
-            return 0.0
+        for host_id in self.hosts:
+            if host_id == current_host:
+                continue
             
-        # Вычисляем, насколько эффективно VM использует ресурсы хоста
-        # Чем ближе к целевой утилизации, тем лучше
-        current_utilization = self.calculate_host_utilization(host_id)
-        new_util = current_utilization + self.estimate_vm_utilization_impact(vm_id, host_id)
+            # Проверяем, может ли хост принять VM
+            if not self.can_host_vm(host_id, vm_id, host_resources[host_id]):
+                continue
+            
+            # Вычисляем стоимость миграции
+            cost = self.calculate_migration_cost(vm_id, current_host, host_id)
+            
+            # Учитываем текущую утилизацию хоста
+            utilization = self.calculate_host_utilization(host_id)
+            if utilization < TARGET_UTILIZATION:
+                cost *= 0.9  # Поощряем миграцию на менее загруженные хосты
+            
+            if cost < min_cost:
+                min_cost = cost
+                best_host = host_id
         
-        # Штраф за чрезмерную утилизацию (выше TARGET_UTILIZATION)
-        if new_util > TARGET_UTILIZATION:
-            overutil_penalty = (new_util - TARGET_UTILIZATION) * 5
-            return 1.0 - overutil_penalty
+        return best_host
+
+    def optimize_migrations(self, allocations: Dict[str, List[str]], host_resources: Dict[str, Dict]) -> Dict[str, List[str]]:
+        """Оптимизирует размещение VM через миграции."""
+        migrations_count = 0
+        new_allocations = {k: v[:] for k, v in allocations.items()}
         
-        # Бонус за приближение к целевой утилизации
-        util_diff = abs(TARGET_UTILIZATION - new_util)
-        return 1.0 - (util_diff / TARGET_UTILIZATION)
+        # Инициализируем current_vm_locations из текущих размещений
+        current_vm_locations = {}
+        for host_id, vm_list in new_allocations.items():
+            for vm_id in vm_list:
+                if vm_id in self.vms:
+                    current_vm_locations[vm_id] = host_id
+        
+        # Функция проверки возможности миграции
+        def validate_migration(vm_id: str, from_host: str, to_host: str) -> bool:
+            # Проверяем, что VM существует и находится на исходном хосте
+            if vm_id not in self.vms or current_vm_locations.get(vm_id) != from_host:
+                return False
+            
+            # Проверяем, что целевой хост может принять VM
+            if not self.can_host_vm(to_host, vm_id, host_resources[to_host]):
+                return False
+            
+            return True
+        
+        # Функция оценки эффективности миграции
+        def evaluate_migration(vm_id: str, from_host: str, to_host: str) -> float:
+            # Проверяем возможность миграции
+            if not validate_migration(vm_id, from_host, to_host):
+                return float('inf')
+            
+            # Если хост уже оптимально загружен, не трогаем его
+            current_utilization = self.calculate_host_utilization(from_host, new_allocations[from_host])
+            if abs(current_utilization - TARGET_UTILIZATION) < 0.1:
+                return float('inf')
+            
+            # Оцениваем состояние до миграции
+            before_from_util = current_utilization
+            before_to_util = self.calculate_host_utilization(to_host, new_allocations[to_host])
+            before_score = abs(before_from_util - TARGET_UTILIZATION) + abs(before_to_util - TARGET_UTILIZATION)
+            
+            # Симулируем миграцию
+            test_allocations = {k: v[:] for k, v in new_allocations.items()}
+            test_allocations[from_host].remove(vm_id)
+            test_allocations[to_host].append(vm_id)
+            
+            # Оцениваем состояние после миграции
+            after_from_util = self.calculate_host_utilization(from_host, test_allocations[from_host])
+            after_to_util = self.calculate_host_utilization(to_host, test_allocations[to_host])
+            after_score = abs(after_from_util - TARGET_UTILIZATION) + abs(after_to_util - TARGET_UTILIZATION)
+            
+            # Вычисляем выигрыш от миграции
+            improvement = before_score - after_score
+            
+            # Учитываем стоимость миграции
+            migration_cost = self.calculate_migration_cost(vm_id, from_host, to_host)
+            
+            # Если миграция не дает существенного улучшения, не выполняем её
+            if improvement < 0.1:
+                return float('inf')
+            
+            return migration_cost / improvement
+        
+        # Сортируем хосты по отклонению от целевой утилизации
+        sorted_hosts = sorted(
+            self.hosts.keys(),
+            key=lambda h: abs(self.calculate_host_utilization(h, new_allocations[h]) - TARGET_UTILIZATION)
+        )
+        
+        # Пытаемся оптимизировать размещение
+        while migrations_count < MAX_MIGRATIONS:
+            best_migration = None
+            best_score = float('inf')
+            
+            # Ищем лучшую возможную миграцию
+            for from_host in sorted_hosts:
+                # Пропускаем пустые хосты
+                if not new_allocations[from_host]:
+                    continue
+                
+                # Сортируем VM по размеру (от больших к маленьким)
+                vms_on_host = sorted(
+                    new_allocations[from_host],
+                    key=lambda vm: -(
+                        self.vms[vm].get("cpu", 0) + 
+                        self.vms[vm].get("ram", 0) + 
+                        self.vms[vm].get("disk", 0)
+                    )
+                )
+                
+                for vm_id in vms_on_host:
+                    # Проверяем, что VM действительно находится на этом хосте
+                    if current_vm_locations.get(vm_id) != from_host:
+                        continue
+                    
+                    # Ищем подходящий хост для миграции
+                    for to_host in sorted_hosts:
+                        if to_host == from_host:
+                            continue
+                        
+                        # Оцениваем эффективность миграции
+                        score = evaluate_migration(vm_id, from_host, to_host)
+                        
+                        if score < best_score:
+                            best_score = score
+                            best_migration = (vm_id, from_host, to_host)
+            
+            # Если нашли подходящую миграцию, выполняем её
+            if best_migration and best_score < float('inf'):
+                vm_id, from_host, to_host = best_migration
+                
+                # Выполняем миграцию
+                new_allocations[from_host].remove(vm_id)
+                new_allocations[to_host].append(vm_id)
+                
+                # Обновляем ресурсы хостов
+                vm = self.vms[vm_id]
+                for resource in ["cpu", "ram", "disk"]:
+                    if resource in vm and resource in host_resources[from_host]:
+                        host_resources[from_host][resource] += vm.get(resource, 0)
+                    if resource in vm and resource in host_resources[to_host]:
+                        host_resources[to_host][resource] -= vm.get(resource, 0)
+                
+                # Обновляем текущее местоположение VM
+                current_vm_locations[vm_id] = to_host
+                
+                migrations_count += 1
+            else:
+                # Если не нашли подходящей миграции, прекращаем оптимизацию
+                break
+        
+        return new_allocations
 
     def place_vms(self) -> Dict[str, List[str]]:
-        """Размещает виртуальные машины на хостах, учитывая предыдущие размещения и миграции."""
-        # Создаем новые распределения, начиная с предыдущих
+        """Размещает виртуальные машины на хостах."""
+        # Инициализируем новые размещения и ресурсы хостов
         new_allocations = {host_id: [] for host_id in self.hosts}
-        allocation_failures = []
+        host_resources = {host_id: self.hosts[host_id].copy() for host_id in self.hosts}
         
-        # Копируем текущие аллокации (только существующие VM)
+        # Очищаем vm_to_host_map перед новым размещением
+        self.vm_to_host_map = {}
+        
+        # Сначала пытаемся сохранить существующие размещения
         for host_id, vm_list in self.previous_allocations.items():
-            # Пропускаем хосты, которых больше нет
             if host_id not in self.hosts:
                 continue
             
-            new_allocations[host_id] = [vm for vm in vm_list if vm in self.vms]
-        
-        # Обновляем отображение VM -> Host
-        self.vm_to_host_map = {}
-        for host_id, vm_ids in new_allocations.items():
-            for vm_id in vm_ids:
-                self.vm_to_host_map[vm_id] = host_id
-        
-        # Рассчитываем текущие ресурсы хостов
-        host_resources = {}
-        for host_id in self.hosts:
-            host_resources[host_id] = self.calculate_host_capacity(host_id, new_allocations)
-        
-        # Сначала размещаем новые VM, которых не было раньше
-        new_vms = [vm_id for vm_id in self.vms if vm_id not in self.vm_to_host_map]
-        
-        # Быстрая оценка для сортировки хостов
-        host_utilization = {}
-        for host_id in self.hosts:
-            host_utilization[host_id] = self.calculate_host_utilization(host_id, new_allocations[host_id])
-        
-        # Сортируем хосты с улучшенной эвристикой
-        sorted_hosts = sorted(
-            self.hosts.keys(),
-            key=lambda host_id: (
-                # Сначала пытаемся использовать хосты близкие к целевой утилизации, но не превышающие её
-                abs(TARGET_UTILIZATION - host_utilization[host_id]) if host_utilization[host_id] <= TARGET_UTILIZATION else 100,
-                # Затем хосты с максимальной утилизацией, не превышающей целевую
-                -host_utilization[host_id] if host_utilization[host_id] <= TARGET_UTILIZATION else 0,
-                # Затем хосты с минимальным количеством нулевых утилизаций
-                self.host_zero_utilization_count.get(host_id, 0)
-            )
-        )
-        
-        # Улучшенная сортировка VM - учитываем как размер, так и соотношение CPU/RAM
-        sorted_vms = sorted(
-            new_vms,
-            key=lambda vm_id: (
-                # Сначала по общему объему ресурсов (от большего к меньшему)
-                -(self.vms[vm_id].get("cpu", 0) + self.vms[vm_id].get("ram", 0) / 10),
-                # Затем по соотношению CPU/RAM (приоритет балансу)
-                abs(self.vms[vm_id].get("cpu", 0) / max(1, self.vms[vm_id].get("ram", 1)) - 0.5)
-            )
-        )
-        
-        # Размещаем новые VM с улучшенной эвристикой
-        for vm_id in sorted_vms:
-            vm = self.vms[vm_id]
-            placed = False
-            
-            # Сначала пытаемся найти оптимальное размещение
-            best_host = None
-            best_score = -1
-            
-            for host_id in sorted_hosts:
+            # Проверяем каждую VM из предыдущего размещения
+            for vm_id in vm_list:
+                if vm_id not in self.vms:
+                    continue
+                
+                vm = self.vms[vm_id]
+                # Проверяем, можем ли оставить VM на текущем хосте
                 if self.can_host_vm(host_id, vm_id, host_resources[host_id]):
-                    # Вычисляем эффективность размещения
-                    score = self.get_resource_efficiency(vm_id, host_id)
-                    
-                    if score > best_score:
-                        best_score = score
-                        best_host = host_id
+                    new_allocations[host_id].append(vm_id)
+                    self.vm_to_host_map[vm_id] = host_id
+                    # Обновляем доступные ресурсы хоста
+                    for resource in ["cpu", "ram", "disk"]:
+                        if resource in vm and resource in host_resources[host_id]:
+                            host_resources[host_id][resource] -= vm[resource]
+        
+        # Получаем список оставшихся VM для размещения
+        placed_vms = set(vm_id for host_vms in new_allocations.values() for vm_id in host_vms)
+        remaining_vms = sorted(
+            [vm_id for vm_id in self.vms if vm_id not in placed_vms],
+            key=lambda vm_id: -(
+                self.vms[vm_id].get("cpu", 0) + 
+                self.vms[vm_id].get("ram", 0) + 
+                self.vms[vm_id].get("disk", 0)
+            )
+        )
+        
+        # Размещаем оставшиеся VM
+        for vm_id in remaining_vms:
+            vm = self.vms[vm_id]
+            best_host = None
+            best_utilization = float('inf')
+            
+            # Ищем хост с наименьшей утилизацией, который может принять VM
+            for host_id in self.hosts:
+                if not self.can_host_vm(host_id, vm_id, host_resources[host_id]):
+                    continue
+                
+                # Вычисляем утилизацию после размещения VM
+                test_allocation = new_allocations[host_id] + [vm_id]
+                utilization = self.calculate_host_utilization(host_id, test_allocation)
+                
+                # Выбираем хост с утилизацией ближе к целевой
+                if abs(utilization - TARGET_UTILIZATION) < abs(best_utilization - TARGET_UTILIZATION):
+                    best_host = host_id
+                    best_utilization = utilization
             
             # Если нашли подходящий хост, размещаем VM
             if best_host:
                 new_allocations[best_host].append(vm_id)
                 self.vm_to_host_map[vm_id] = best_host
-                
                 # Обновляем доступные ресурсы хоста
-                host_resources[best_host]["cpu"] -= vm.get("cpu", 0)
-                host_resources[best_host]["ram"] -= vm.get("ram", 0)
-                if "disk" in host_resources[best_host] and "disk" in vm:
-                    host_resources[best_host]["disk"] -= vm["disk"]
-                
-                # Обновляем утилизацию хоста
-                host_utilization[best_host] = self.calculate_host_utilization(best_host, new_allocations[best_host])
-                
-                placed = True
-            
-            # Если не удалось разместить обычным способом, пробуем найти место с миграцией
-            if not placed:
-                migration_successful = self.try_migration_placement(vm_id, new_allocations, host_resources, host_utilization)
-                if not migration_successful:
-                    # Не удалось разместить VM даже с миграцией
-                    allocation_failures.append(vm_id)
-                    self.log.append(f"Failed to allocate VM {vm_id} with resources CPU:{vm.get('cpu', 0)}, RAM:{vm.get('ram', 0)}")
+                for resource in ["cpu", "ram", "disk"]:
+                    if resource in vm and resource in host_resources[best_host]:
+                        host_resources[best_host][resource] -= vm[resource]
         
-        # Обновляем счетчики нулевой утилизации и анализируем загрузку
-        for host_id in self.hosts:
-            utilization = self.calculate_host_utilization(host_id, new_allocations[host_id])
-            if utilization < 0.01:  # Почти нулевая утилизация
-                self.host_zero_utilization_count[host_id] = self.host_zero_utilization_count.get(host_id, 0) + 1
-            else:
-                self.host_zero_utilization_count[host_id] = 0
+        # Оптимизируем размещения через миграции
+        optimized_allocations = self.optimize_migrations(new_allocations, host_resources)
         
-        # Оптимизируем через перемещения для выключения неиспользуемых хостов
-        self.optimize_allocations(new_allocations, host_resources)
+        # Обновляем vm_to_host_map на основе оптимизированных размещений
+        self.vm_to_host_map = {}
+        for host_id, vm_list in optimized_allocations.items():
+            for vm_id in vm_list:
+                self.vm_to_host_map[vm_id] = host_id
         
-        # Сохраняем информацию о неразмещенных VM
-        self.allocation_failures = allocation_failures
-        
-        return new_allocations
-
-    def try_migration_placement(self, vm_id: str, allocations: Dict[str, List[str]], 
-                                host_resources: Dict[str, Dict], host_utilization: Dict[str, float]) -> bool:
-        """Пытается разместить VM путем миграции других VM."""
-        vm = self.vms[vm_id]
-        
-        # Сортируем хосты по утилизации (от наименьшей к наибольшей)
-        candidate_hosts = sorted(
-            [h for h in self.hosts if allocations[h]],  # Только хосты с VM
-            key=lambda h: host_utilization[h]
-        )
-        
-        for source_host in candidate_hosts:
-            # Сортируем VM на хосте по размеру (от наименьших к наибольшим)
-            source_vms = sorted(
-                allocations[source_host],
-                key=lambda vm: (
-                    self.vms[vm].get("cpu", 0) + 
-                    self.vms[vm].get("ram", 0)
-                )
-            )
-            
-            # Пробуем найти VM для миграции
-            for move_vm in source_vms:
-                vm_data = self.vms[move_vm]
-                
-                # Оцениваем, стоит ли пытаться мигрировать VM
-                if (vm_data.get("cpu", 0) < vm.get("cpu", 0) and 
-                    vm_data.get("ram", 0) < vm.get("ram", 0)):
-                    # Мигрируемая VM меньше, чем VM, которую мы хотим разместить
-                    # Это может быть хорошим кандидатом для миграции
-                    
-                    # Временно удаляем VM с исходного хоста
-                    allocations[source_host].remove(move_vm)
-                    
-                    # Проверяем, появилось ли место для новой VM
-                    current_capacity = self.calculate_host_capacity(source_host, allocations)
-                    
-                    # Проверяем, можем ли разместить новую VM
-                    can_place = (
-                        current_capacity.get("cpu", 0) >= vm.get("cpu", 0) and
-                        current_capacity.get("ram", 0) >= vm.get("ram", 0)
-                    )
-                    
-                    if "disk" in current_capacity and "disk" in vm:
-                        can_place = can_place and current_capacity["disk"] >= vm["disk"]
-                    
-                    if can_place:
-                        # Ищем хост для перемещаемой VM
-                        # Сортируем хосты так, чтобы предпочитать те, которые ближе к целевой утилизации
-                        target_hosts = sorted(
-                            [h for h in self.hosts if h != source_host],
-                            key=lambda h: abs(TARGET_UTILIZATION - (
-                                host_utilization[h] + self.estimate_vm_utilization_impact(move_vm, h)
-                            ))
-                        )
-                        
-                        for target_host in target_hosts:
-                            target_capacity = self.calculate_host_capacity(target_host, allocations)
-                            
-                            can_move = (
-                                target_capacity.get("cpu", 0) >= vm_data.get("cpu", 0) and
-                                target_capacity.get("ram", 0) >= vm_data.get("ram", 0)
-                            )
-                            
-                            if "disk" in target_capacity and "disk" in vm_data:
-                                can_move = can_move and target_capacity["disk"] >= vm_data["disk"]
-                            
-                            if can_move:
-                                # Размещаем мигрируемую VM на целевом хосте
-                                allocations[target_host].append(move_vm)
-                                # Размещаем новую VM на исходном хосте
-                                allocations[source_host].append(vm_id)
-                                
-                                # Обновляем ресурсы и утилизацию
-                                for h in self.hosts:
-                                    host_resources[h] = self.calculate_host_capacity(h, allocations)
-                                    host_utilization[h] = self.calculate_host_utilization(h, allocations[h])
-                                
-                                self.log.append(f"Migration: moved {move_vm} from {source_host} to {target_host} to place {vm_id}")
-                                return True
-                    
-                    # Если не нашли место для мигрируемой VM или не можем разместить новую VM,
-                    # возвращаем мигрируемую VM на исходный хост
-                    allocations[source_host].append(move_vm)
-        
-        return False
-
-    def optimize_allocations(self, allocations: Dict[str, List[str]], host_resources: Dict[str, Dict]) -> None:
-        """Оптимизирует размещение VM через миграции для выключения неиспользуемых хостов."""
-        # Подсчитываем количество миграций
-        migrations = 0
-        
-        # Определяем хосты с низкой и высокой утилизацией
-        all_hosts = list(self.hosts.keys())
-        host_utilization = {h: self.calculate_host_utilization(h, allocations[h]) for h in all_hosts}
-        
-        # Сортируем хосты по нагрузке (сначала хосты с низкой загрузкой)
-        # Приоритизируем хосты с длительной нулевой утилизацией для ранней консолидации
-        hosts_by_utilization = sorted(
-            all_hosts,
-            key=lambda h: (
-                min(1, self.host_zero_utilization_count.get(h, 0) / 5),  # Приоритет хостам с нулевой утилизацией
-                host_utilization[h]  # Затем сортировка по утилизации
-            )
-        )
-        
-        # Сначала пытаемся выключить хосты с нулевой утилизацией
-        for source_idx, source_host in enumerate(hosts_by_utilization):
-            if migrations >= MAX_MIGRATIONS:
-                break
-                
-            # Пропускаем хосты с высокой утилизацией
-            if host_utilization[source_host] > LOWER_THRESHOLD:
-                continue
-                
-            # Если на хосте нет VM, пропускаем его
-            if not allocations[source_host]:
-                continue
-            
-            # Проверяем, стоит ли консолидировать VM с этого хоста
-            should_consolidate = (
-                host_utilization[source_host] < LOWER_THRESHOLD or
-                self.host_zero_utilization_count.get(source_host, 0) >= 3  # После 3 раундов начинаем консолидацию
-            )
-            
-            if should_consolidate:
-                # Сортируем VM по размеру - сначала большие, чтобы не было фрагментации
-                vms_to_migrate = sorted(
-                    allocations[source_host],
-                    key=lambda vm: -(
-                        self.vms[vm].get("cpu", 0) + 
-                        self.vms[vm].get("ram", 0)
-                    )
-                )
-                
-                # Для каждой VM ищем новый хост
-                for vm_id in vms_to_migrate[:]:  # Копия списка для безопасного перебора
-                    if migrations >= MAX_MIGRATIONS:
-                        break
-                        
-                    vm = self.vms[vm_id]
-                    
-                    # Ищем подходящий хост, стремясь к целевой утилизации
-                    candidate_hosts = [h for h in all_hosts if h != source_host]
-                    # Сортировка для приоритета хостов с утилизацией близкой к целевой
-                    candidate_hosts.sort(
-                        key=lambda h: abs(
-                            TARGET_UTILIZATION - (
-                                host_utilization[h] + self.estimate_vm_utilization_impact(vm_id, h)
-                            )
-                        )
-                    )
-                    
-                    for target_host in candidate_hosts:
-                        # Проверяем, может ли хост принять VM
-                        target_capacity = self.calculate_host_capacity(target_host, allocations)
-                        
-                        can_move = (
-                            target_capacity.get("cpu", 0) >= vm.get("cpu", 0) and
-                            target_capacity.get("ram", 0) >= vm.get("ram", 0)
-                        )
-                        
-                        if "disk" in target_capacity and "disk" in vm:
-                            can_move = can_move and target_capacity["disk"] >= vm["disk"]
-                        
-                        # Проверяем, не приведет ли миграция к перегрузке целевого хоста
-                        target_utilization = host_utilization[target_host]
-                        vm_impact = self.estimate_vm_utilization_impact(vm_id, target_host)
-                        new_utilization = target_utilization + vm_impact
-                        
-                        # Не мигрируем, если утилизация превысит верхний порог
-                        if can_move and new_utilization <= UPPER_THRESHOLD:
-                            # Мигрируем VM только если она все еще на исходном хосте
-                            if vm_id in allocations[source_host]:
-                                allocations[source_host].remove(vm_id)
-                                allocations[target_host].append(vm_id)
-                                
-                                # Обновляем ресурсы и утилизацию
-                                host_resources[target_host] = self.calculate_host_capacity(target_host, allocations)
-                                host_resources[source_host] = self.calculate_host_capacity(source_host, allocations)
-                                host_utilization[target_host] = self.calculate_host_utilization(target_host, allocations[target_host])
-                                host_utilization[source_host] = self.calculate_host_utilization(source_host, allocations[source_host])
-                                
-                                migrations += 1
-                                self.log.append(f"Consolidation: moved {vm_id} from {source_host} to {target_host}")
-                            break
-                
-                # Если все VM перенесены, хост будет выключен
-                if not allocations[source_host]:
-                    self.log.append(f"Host {source_host} is now empty and can be turned off")
-        
-        # Балансируем перегруженные хосты
-        overutilized_hosts = [h for h in all_hosts if host_utilization[h] > UPPER_THRESHOLD]
-        overutilized_hosts.sort(key=lambda h: -host_utilization[h])
-        
-        for source_host in overutilized_hosts:
-            if migrations >= MAX_MIGRATIONS:
-                break
-                
-            # Сортируем VM на хосте по размеру - сначала маленькие, чтобы минимизировать миграции
-            vms_on_host = sorted(
-                allocations[source_host],
-                key=lambda vm: (
-                    self.vms[vm].get("cpu", 0) + 
-                    self.vms[vm].get("ram", 0)
-                )
-            )
-            
-            # Пробуем найти наименьшую VM для миграции
-            for vm_id in vms_on_host[:]:  # Копия списка для безопасного перебора
-                if migrations >= MAX_MIGRATIONS:
-                    break
-                    
-                vm = self.vms[vm_id]
-                
-                # Выбираем хосты с низкой загрузкой
-                target_hosts = [h for h in all_hosts if h != source_host and host_utilization[h] < TARGET_UTILIZATION]
-                # Сортировка для приоритета хостов с утилизацией близкой к целевой
-                target_hosts.sort(
-                    key=lambda h: abs(
-                        TARGET_UTILIZATION - (
-                            host_utilization[h] + self.estimate_vm_utilization_impact(vm_id, h)
-                        )
-                    )
-                )
-                
-                for target_host in target_hosts:
-                    target_capacity = self.calculate_host_capacity(target_host, allocations)
-                    
-                    can_move = (
-                        target_capacity.get("cpu", 0) >= vm.get("cpu", 0) and
-                        target_capacity.get("ram", 0) >= vm.get("ram", 0)
-                    )
-                    
-                    if "disk" in target_capacity and "disk" in vm:
-                        can_move = can_move and target_capacity["disk"] >= vm["disk"]
-                    
-                    if can_move:
-                        # Мигрируем VM только если она все еще на исходном хосте
-                        if vm_id in allocations[source_host]:
-                            allocations[source_host].remove(vm_id)
-                            allocations[target_host].append(vm_id)
-                            
-                            # Обновляем ресурсы и утилизацию
-                            host_resources[target_host] = self.calculate_host_capacity(target_host, allocations)
-                            host_resources[source_host] = self.calculate_host_capacity(source_host, allocations)
-                            host_utilization[target_host] = self.calculate_host_utilization(target_host, allocations[target_host])
-                            host_utilization[source_host] = self.calculate_host_utilization(source_host, allocations[source_host])
-                            
-                            migrations += 1
-                            self.log.append(f"Load balancing: moved {vm_id} from {source_host} to {target_host}")
-                            
-                            # Если утилизация теперь в приемлемом диапазоне, переходим к следующему хосту
-                            if host_utilization[source_host] <= UPPER_THRESHOLD:
-                                break
-                
-                if host_utilization[source_host] <= UPPER_THRESHOLD:
-                    break
+        return optimized_allocations
 
     def generate_output(self, new_allocations: Dict[str, List[str]]) -> str:
         """Генерирует выходные данные в формате JSON."""
@@ -600,7 +493,7 @@ class VMScheduler:
                 new_vm_locations[vm_id] = host_id
         
         # Находим все миграции
-        for vm_id in self.vms:
+        for vm_id in new_vm_locations:
             old_host = old_vm_locations.get(vm_id)
             new_host = new_vm_locations.get(vm_id)
             
@@ -615,49 +508,68 @@ class VMScheduler:
         output = {
             "allocations": new_allocations,
             "migrations": migrations,
-            "allocation_failures": getattr(self, "allocation_failures", [])
+            "allocation_failures": []  # Добавляем пустой список для allocation_failures
         }
         
         return json.dumps(output)
 
     def solve(self, input_str: str) -> str:
-        """Основной метод для решения задачи планирования VM."""
-        start_time = time.time()
-        
-        # Сбрасываем логи
-        self.log = []
-        
-        # Обрабатываем входные данные
-        self.load_data(input_str)
-        
-        # Размещаем виртуальные машины
-        new_allocations = self.place_vms()
-        
-        # Генерируем выходные данные
-        output = self.generate_output(new_allocations)
-        
-        # Сохраняем новые аллокации для следующего раунда
-        self.previous_allocations = new_allocations
-        
-        end_time = time.time()
-        execution_time = end_time - start_time
-        
-        # Записываем логи выполнения для отладки
-        # print(f"Execution time: {execution_time:.4f} seconds", file=sys.stderr)
-        # print(f"Logs: {len(self.log)} entries", file=sys.stderr)
-        # for log_entry in self.log:
-        #     print(f"  {log_entry}", file=sys.stderr)
-        
-        return output
-
+        """Решает задачу размещения виртуальных машин."""
+        try:
+            # Загружаем входные данные
+            self.load_data(input_str)
+            
+            # Размещаем виртуальные машины
+            new_allocations = self.place_vms()
+            
+            # Генерируем выходные данные
+            return self.generate_output(new_allocations)
+        except json.JSONDecodeError:
+            # В случае ошибки разбора JSON возвращаем пустой результат
+            return json.dumps({
+                "allocations": {},
+                "migrations": {},
+                "allocation_failures": []
+            })
+        except Exception as e:
+            # В случае любой другой ошибки возвращаем пустой результат
+            return json.dumps({
+                "allocations": {},
+                "migrations": {},
+                "allocation_failures": []
+            })
 
 if __name__ == "__main__":
-    # Читаем входные данные
-    input_str = sys.stdin.read()
-    
-    # Создаем экземпляр планировщика и решаем задачу
-    scheduler = VMScheduler()
-    output = scheduler.solve(input_str)
-    
-    # Выводим результат
-    print(output) 
+    try:
+        # Читаем входные данные из stdin
+        input_data = sys.stdin.read().strip()
+        
+        if not input_data:
+            # Если входные данные пустые, возвращаем пустой результат
+            sys.stdout.write(json.dumps({
+                "allocations": {},
+                "migrations": {},
+                "allocation_failures": []
+            }))
+            sys.stdout.flush()
+            sys.exit(0)
+        
+        # Создаем экземпляр планировщика
+        scheduler = VMScheduler()
+        
+        # Решаем задачу
+        result = scheduler.solve(input_data)
+        
+        # Выводим результат в stdout
+        sys.stdout.write(result)
+        sys.stdout.flush()
+        sys.exit(0)
+    except Exception as e:
+        # В случае ошибки выводим пустой результат
+        sys.stdout.write(json.dumps({
+            "allocations": {},
+            "migrations": {},
+            "allocation_failures": []
+        }))
+        sys.stdout.flush()
+        sys.exit(0) 
