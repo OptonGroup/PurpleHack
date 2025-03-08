@@ -68,29 +68,50 @@ CATEGORIES = ['одежда для девочек', 'столы', 'стулья'
 
 class ProductDataset(Dataset):
     def __init__(self, df, img_dir, transform=None, is_test=False):
-        self.df = df
+        self.df = df.reset_index(drop=True)  # Сбрасываем индексы после фильтрации
         self.img_dir = img_dir
         self.transform = transform
         self.is_test = is_test
         self.category_to_idx = {cat: idx for idx, cat in enumerate(CATEGORIES)}
         self.color_to_idx = {color: idx for idx, color in enumerate(COLORS.keys())}
         
+        # Проверяем все пути к изображениям заранее
+        self.valid_indices = []
+        for idx in range(len(df)):
+            img_path = os.path.join(self.img_dir, f"{df.iloc[idx]['id']}.jpg")
+            if os.path.exists(img_path):
+                self.valid_indices.append(idx)
+        
+        if len(self.valid_indices) == 0:
+            raise ValueError(f"Не найдено ни одного изображения в директории {img_dir}")
+        
+        print(f"Найдено {len(self.valid_indices)} валидных изображений из {len(df)}")
+        
     def __len__(self):
-        return len(self.df)
+        return len(self.valid_indices)
     
     def __getitem__(self, idx):
-        img_id = self.df.iloc[idx]['id']
+        real_idx = self.valid_indices[idx]
+        img_id = self.df.iloc[real_idx]['id']
         img_path = os.path.join(self.img_dir, f"{img_id}.jpg")
-        image = Image.open(img_path).convert('RGB')
+        
+        try:
+            image = Image.open(img_path).convert('RGB')
+        except Exception as e:
+            print(f"Ошибка при загрузке изображения {img_path}: {str(e)}")
+            raise
         
         if self.transform:
-            image = self.transform(image)
+            try:
+                image = self.transform(image)
+            except Exception as e:
+                print(f"Ошибка при применении трансформации к {img_path}: {str(e)}")
+                raise
             
-        category = self.category_to_idx[self.df.iloc[idx]['category']]
+        category = self.category_to_idx[self.df.iloc[real_idx]['category']]
         
         if not self.is_test:
-            # Конвертируем транслитерацию в русское название
-            color_translit = self.df.iloc[idx]['target']
+            color_translit = self.df.iloc[real_idx]['target']
             color_ru = TRANSLIT_TO_RU[color_translit]
             color = self.color_to_idx[color_ru]
             return image, category, color
@@ -222,8 +243,19 @@ def main():
     train_df = pd.read_csv(TRAIN_CSV)
     test_df = pd.read_csv(TEST_CSV)
     
-    print(f"Размер тренировочного датасета: {len(train_df)}")
-    print(f"Размер тестового датасета: {len(test_df)}")
+    print(f"Исходный размер тренировочного датасета: {len(train_df)}")
+    print(f"Исходный размер тестового датасета: {len(test_df)}")
+    
+    # Фильтрация записей по существующим файлам
+    def check_image_exists(row, data_dir):
+        img_path = os.path.join(data_dir, f"{row['id']}.jpg")
+        return os.path.exists(img_path)
+    
+    train_df = train_df[train_df.apply(lambda x: check_image_exists(x, TRAIN_DATA_DIR), axis=1)]
+    test_df = test_df[test_df.apply(lambda x: check_image_exists(x, TEST_DATA_DIR), axis=1)]
+    
+    print(f"\nРазмер тренировочного датасета после фильтрации: {len(train_df)}")
+    print(f"Размер тестового датасета после фильтрации: {len(test_df)}")
     
     # Проверка уникальных цветов в данных
     unique_colors = train_df['target'].unique()
@@ -236,6 +268,12 @@ def main():
         raise ValueError(f"Найдены неизвестные цвета: {unknown_colors}")
     
     print("Все цвета успешно маппятся")
+    
+    # Проверяем, остались ли данные после фильтрации
+    if len(train_df) == 0:
+        raise ValueError("После фильтрации не осталось тренировочных данных!")
+    if len(test_df) == 0:
+        raise ValueError("После фильтрации не осталось тестовых данных!")
     
     train_transform = transforms.Compose([
         transforms.Resize((256, 256)),
@@ -282,4 +320,4 @@ def main():
     print("Готово! Результаты сохранены в submission.csv")
 
 if __name__ == '__main__':
-    main() 
+    main()  
