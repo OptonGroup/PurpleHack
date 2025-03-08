@@ -1,0 +1,148 @@
+# Instructions
+
+During your interaction with the user, if you find anything reusable in this project (e.g. version of a library, model name), especially about a fix to a mistake you made or a correction you received, you should take note in the `Lessons` section in the `.cursorrules` file so you will not make the same mistake again. 
+
+You should also use the `.cursorrules` file as a Scratchpad to organize your thoughts. Especially when you receive a new task, you should first review the content of the Scratchpad, clear old different task if necessary, first explain the task, and plan the steps you need to take to complete the task. You can use todo markers to indicate the progress, e.g.
+[X] Task 1
+[ ] Task 2
+
+Also update the progress of the task in the Scratchpad when you finish a subtask.
+Especially when you finished a milestone, it will help to improve your depth of task accomplishment to use the Scratchpad to reflect and plan.
+The goal is to help you maintain a big picture as well as the progress of the task. Always refer to the Scratchpad when you plan the next step.
+
+# Lessons
+
+## User Specified Lessons
+
+- You have a python venv in ./venv. Use it.
+- Include info useful for debugging in the program output.
+- Read the file before you try to edit it.
+- Due to Cursor's limit, when you use `git` and `gh` and need to submit a multiline commit message, first write the message in a file, and then use `git commit -F <filename>` or similar command to commit. And then remove the file. Include "[Cursor] " in the commit message and PR title.
+
+## Cursor learned
+
+- For search results, ensure proper handling of different character encodings (UTF-8) for international queries
+- Add debug information to stderr while keeping the main output clean in stdout for better pipeline integration
+- When using seaborn styles in matplotlib, use 'seaborn-v0_8' instead of 'seaborn' as the style name due to recent seaborn version changes
+- Use 'gpt-4o' as the model name for OpenAI's GPT-4 with vision capabilities
+- When searching for recent news, use the current year (2025) instead of previous years, or simply use the "recent" keyword to get the latest information
+- При оптимизации планировщика размещения виртуальных машин, важно снизить количество миграций VM до необходимого минимума, так как штраф за них растет квадратично (m²)
+- Целевая утилизация хостов ~80% даёт наилучшие результаты по баллам в соответствии с формулой оценки
+- Приоритизация CPU над RAM при вычислении утилизации улучшает балансировку нагрузки
+- Эффективная стратегия консолидации VM на хостах позволяет увеличить количество полностью свободных хостов и получить дополнительные баллы
+- Важно иметь различные стратегии для разных этапов: размещение новых VM, миграция VM, балансировка нагрузки и консолидация VM
+
+# Scratchpad
+
+запускать тесты 
+```
+python test_runner.py --solution "python solution.py" --tests tests --verbose
+```
+## Задача: Улучшение планировщика размещения виртуальных машин
+
+### План оптимизации (Итерация 1)
+[X] 1. Улучшить стратегию размещения VM
+   [X] Модифицировать алгоритм для стремления к утилизации ~80%
+   [X] Реализовать более умную эвристику для сортировки хостов
+   [X] Добавить оценку эффективности размещения VM на хостах
+
+[X] 2. Оптимизировать стратегию миграции
+   [X] Снизить максимальное количество миграций до 3 (снижение штрафа)
+   [X] Создать отдельный метод try_migration_placement для улучшения читаемости
+   [X] Приоритизировать миграции, которые дают максимальную эффективность
+
+[X] 3. Улучшить балансировку нагрузки
+   [X] Улучшить формулу расчета утилизации с приоритетом CPU
+   [X] Добавить оценку влияния VM на утилизацию хоста
+   [X] Приоритизировать хосты с утилизацией близкой к целевой
+
+[X] 4. Реализовать лучшую стратегию выключения хостов
+   [X] Приоритизировать хосты с длительной нулевой утилизацией
+   [X] Реализовать механизм консолидации VM с неиспользуемых хостов
+   [X] Добавить логирование для лучшей отладки
+
+### Результаты улучшений (Итерация 1)
+
+#### Результаты тестирования до оптимизации:
+- Общий счёт: 316.1146
+- Время выполнения: 1.3362 секунд
+- Пиковое использование памяти: 0.06 MB
+
+#### Результаты тестирования после оптимизации:
+- Общий счёт: 328.6199 (+12.5053 или +4.0%)
+- Время выполнения: 1.3190 секунд (-0.0172 или -1.3%)
+- Пиковое использование памяти: 0.07 MB (+0.01MB)
+
+#### Улучшения по тестам:
+| Тест                 | До         | После      | Изменение   |
+|----------------------|------------|------------|-------------|
+| allocation_failure   | -18.4394   | -18.4394   | 0           |
+| basic_placement      | 2.8163     | 2.9799     | +0.1636     |
+| edge_cases           | 178.8735   | 179.0192   | +0.1457     |
+| heterogeneous_hosts  | 43.2378    | 49.8447    | +6.6069     |
+| large_scale_test     | 38.3582    | 63.5126    | +25.1544    |
+| migration_test       | 9.7481     | 9.7481     | 0           |
+| optimal_utilization  | 24.8892    | 24.8892    | 0           |
+| vm_removal_test      | 16.9580    | 17.0656    | +0.1076     |
+
+### Наблюдения и анализ:
+
+1. **Общий прогресс**:
+   - Общий счёт увеличился на 12.5053 (4.0%)
+   - Наибольший прирост показали тесты large_scale_test (+25.1544) и heterogeneous_hosts (+6.6069)
+   - Незначительные улучшения в basic_placement, edge_cases и vm_removal_test
+   - Тесты migration_test, optimal_utilization и allocation_failure остались без изменений
+
+2. **Эффективные стратегии**:
+   - Улучшенная сортировка хостов с приоритетом близости к целевой утилизации 80%
+   - Более точная оценка размещения VM с учетом влияния на утилизацию хоста
+   - Снижение максимального количества миграций с 5 до 3 не ухудшило результаты, но потенциально снизило штрафы
+   - Приоритизация CPU над RAM в формуле расчета утилизации улучшила балансировку
+
+3. **Области для дальнейших улучшений**:
+   - Тест allocation_failure всё еще имеет отрицательный счёт (-18.4394)
+   - Миграционные стратегии не показали улучшений в migration_test
+   - Можно улучшить алгоритм для оптимального размещения новых VM
+   - Стратегия выключения хостов может быть более агрессивной
+
+### План на следующую итерацию:
+
+[ ] 1. Улучшить обработку allocation_failure
+   [ ] Добавить предварительную проверку возможности размещения
+   [ ] Реализовать приоритизацию VM по важности
+   [ ] Рассмотреть алгоритм уплотнения размещения
+
+[ ] 2. Усовершенствовать стратегию миграции
+   [ ] Добавить более точную эвристику выбора VM для миграции
+   [ ] Реализовать предварительную оценку стоимости миграции
+   [ ] Минимизировать число миграций для достижения целевой конфигурации
+
+[ ] 3. Усовершенствовать выключение хостов
+   [ ] Начинать консолидацию VM с частично загруженных хостов раньше
+   [ ] Добавить анализ загрузки CPU и RAM в соотношении
+   [ ] Улучшить стратегию выбора хостов для выключения
+
+### Важные наблюдения для оптимизации планировщика виртуальных машин:
+
+1. Тесты с неоднородными хостами (heterogeneous_hosts) и масштабными размещениями (large_scale_test) отзывчивы к улучшению алгоритма размещения.
+
+2. Формула оценки утилизации должна быть адаптирована для конкретных условий теста:
+   - Мы улучшили формулу с более высоким весом CPU: (cpu_util * 3 + ram_util * 2) / 5.0
+   - Это привело к лучшей балансировке и более равномерному распределению нагрузки
+
+3. Миграции – дорогая операция с квадратичным штрафом (m²), необходимо тщательно выбирать:
+   - Какие VM мигрировать
+   - Когда мигрировать
+   - Куда мигрировать
+
+4. Сортировка VM и хостов существенно влияет на качество размещения:
+   - Сортировка хостов по близости к целевой утилизации эффективнее, чем просто по уровню загрузки
+   - При сортировке VM лучше учитывать как размер, так и соотношение ресурсов
+
+5. Консолидация VM для освобождения хостов дает 8 баллов за каждый полностью отключенный хост при условии:
+   - Хост имел нулевую утилизацию 5+ раундов подряд
+   - На хосте ранее размещались VM
+
+6. Эффективность алгоритма измеряется не только по скорости, но и по качеству размещения:
+   - Небольшое увеличение времени выполнения (в пределах ограничений) оправдано при значительном улучшении баллов
+   - Запас по времени выполнения позволяет реализовать более сложные алгоритмы размещения 

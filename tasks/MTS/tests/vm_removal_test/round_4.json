@@ -1,0 +1,1 @@
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{},"diff":{"remove":{"virtual_machines":["vm3"]}}} 
