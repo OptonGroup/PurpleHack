@@ -1,0 +1,96 @@
+data:
+  augmentation:
+    enabled: true
+    resource_shuffle_prob: 0.2
+    task_shuffle_prob: 0.2
+  num_samples: 10000
+  preprocessing:
+    max_sequence_length: 1000
+    normalize_durations: true
+    normalize_resources: true
+  synthetic:
+    dependency_density: 0.3
+    max_resources: 20
+    max_tasks: 100
+    min_resources: 5
+    min_tasks: 10
+  train_val_split: 0.8
+defaults:
+- _self_
+- override hydra/hydra_logging: disabled
+- override hydra/job_logging: disabled
+evaluation:
+  metrics:
+  - relative_duration_reduction
+  - schedule_compression_ratio
+  - resource_utilization_efficiency
+  - load_balancing_index
+  - constraint_violation_rate
+  - dependency_satisfaction_score
+  thresholds:
+    constraint_violation_max: 0.05
+    duration_reduction_min: 0.15
+    resource_efficiency_min: 0.8
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
+logging:
+  log_dir: logs
+  log_interval: 100
+  mlflow:
+    experiment_name: project_scheduler
+    tracking_uri: http://localhost:5000
+  save_interval: 100
+  tensorboard:
+    log_dir: logs/tensorboard
+model:
+  architecture:
+    dropout_rate: 0.1
+    hidden_dim: 256
+    num_attention_heads: 8
+    num_transformer_layers: 4
+    resource_embedding_dim: 64
+    task_embedding_dim: 128
+  constraint_processor:
+    gnn_hidden_dim: 64
+    gnn_layers: 3
+  decoder:
+    output_dim: 128
+    pointer_network:
+      hidden_size: 256
+      num_layers: 2
+  encoder:
+    resource_encoder:
+      bidirectional: true
+      lstm_hidden_size: 128
+      lstm_num_layers: 2
+    task_encoder:
+      dim_feedforward: 1024
+      nhead: 8
+      num_layers: 3
+  name: project_scheduler
+  version: 1.0.0
+training:
+  batch_size: 16
+  checkpoint_dir: checkpoints
+  early_stopping_patience: 10
+  learning_rate: 0.001
+  loss_weights:
+    constraint_violation: 0.3
+    duration: 0.4
+    resource_utilization: 0.3
+  num_epochs: 100
+  optimizer:
+    betas:
+    - 0.9
+    - 0.999
+    name: adam
+    weight_decay: 0.0001
+  scheduler:
+    T_max: 100
+    eta_min: 1e-6
+    name: cosine_annealing
+  validation_split: 0.2
