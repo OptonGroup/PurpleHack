@@ -1154,8 +1154,8 @@ class VMScheduler:
                 
                 for target_host in self.hosts:
                     if target_host == host_id:
-                continue
-                
+                        continue
+                    
                     # Проверяем возможность миграции
                     if not self.can_host_vm(target_host, vm_id, host_resources[target_host]):
                         continue
@@ -1168,7 +1168,7 @@ class VMScheduler:
                     score = 1.0 - abs(new_util - TARGET_UTILIZATION)
                     
                     # Бонус за миграцию на хост с похожими VM
-            vm = self.vms[vm_id]
+                    vm = self.vms[vm_id]
                     vm_ratio = vm.get("cpu", 0) / vm.get("ram", 1)
                     target_vms = [v for v in new_allocations.get(target_host, []) if v in self.vms]
                     if target_vms:
@@ -1203,7 +1203,7 @@ class VMScheduler:
                             host_resources[host_id][resource] += value
                         if resource in host_resources[best_target]:
                             host_resources[best_target][resource] -= value
-            else:
+                else:
                     successfully_moved = False
                     break
             
@@ -1216,9 +1216,9 @@ class VMScheduler:
     def _handle_allocation_failure(self, vm_id: str, current_allocations: Dict[str, List[str]]) -> bool:
         """Обрабатывает ситуацию, когда не удается разместить VM."""
         if vm_id not in self.vms:
-                return False
-                
-            vm = self.vms[vm_id]
+            return False
+        
+        vm = self.vms[vm_id]
         
         # Пытаемся найти хост с наименьшей утилизацией
         host_utils = []
@@ -1233,7 +1233,7 @@ class VMScheduler:
         for strategy in ['consolidate', 'distribute', 'aggressive']:
             for host_id, _ in host_utils:
                 if self._try_recovery_strategy(vm_id, host_id, strategy, current_allocations):
-            return True
+                    return True
         
         return False
 
@@ -1289,41 +1289,6 @@ class VMScheduler:
                             current_allocations[other_host_id].append(vm_id)
                             return True
         
-        # Если утилизация слишком низкая, пытаемся добавить VM
-        elif vm_utils[0][1] < LOWER_THRESHOLD:
-            # Ищем VM для добавления
-            for other_host_id in sorted(self.hosts.keys()):
-                if other_host_id == host_id:
-                    continue
-                    
-                other_vms = current_allocations[other_host_id]
-                if not other_vms:
-                    continue
-                    
-                # Сортируем VM по утилизации
-                other_vm_utils = []
-                for vm_id in other_vms:
-                    if vm_id in self.vms:
-                        vm = self.vms[vm_id]
-                        util = (vm.get("cpu", 0) / self.hosts[other_host_id].get("cpu", 1) + 
-                               vm.get("ram", 0) / self.hosts[other_host_id].get("ram", 1)) / 2
-                        other_vm_utils.append((vm_id, util))
-                
-                other_vm_utils.sort(key=lambda x: x[1])
-                
-                # Пытаемся переместить VM с наименьшей утилизацией
-                for vm_id, _ in other_vm_utils:
-                    if self.can_host_vm(host_id, vm_id):
-                        # Проверяем утилизацию после перемещения
-                        test_alloc = current_allocations[host_id] + [vm_id]
-                        new_util = self.calculate_host_utilization(host_id, test_alloc)
-                        
-                        if LOWER_THRESHOLD <= new_util <= UPPER_THRESHOLD:
-                            # Перемещаем VM
-                            current_allocations[other_host_id].remove(vm_id)
-                            current_allocations[host_id].append(vm_id)
-                            return True
-        
         return False
 
     def _try_distribution_recovery(self, vm_id: str, host_id: str, current_allocations: Dict[str, List[str]]) -> bool:
@@ -1374,8 +1339,8 @@ class VMScheduler:
                     
                 other_vms = current_allocations[other_host_id]
                 if not other_vms:
-                                    continue
-                                    
+                    continue
+                    
                 # Сортируем VM по утилизации
                 other_vm_utils = []
                 for vm_id in other_vms:
@@ -1452,72 +1417,151 @@ class VMScheduler:
 
     def _optimize_initial_placement(self) -> None:
         """Оптимизирует начальное размещение VM."""
-        # Сортируем VM по убыванию потребляемых ресурсов
+        # Анализ характеристик хостов
+        host_profiles = {}
+        for host_id, host in self.hosts.items():
+            cpu = host.get("cpu", 0)
+            ram = host.get("ram", 0)
+            ratio = cpu / ram if ram > 0 else float('inf')
+            
+            # Классификация хоста
+            if ratio > 2.0:
+                profile = "cpu_optimized"
+            elif ratio < 0.5:
+                profile = "ram_optimized"
+            else:
+                profile = "balanced"
+                
+            host_profiles[host_id] = {
+                "profile": profile,
+                "ratio": ratio,
+                "total_capacity": cpu + ram,
+                "available_cpu": cpu,
+                "available_ram": ram
+            }
+
+        # Анализ характеристик VM
+        vm_profiles = {}
+        for vm_id, vm in self.vms.items():
+            cpu = vm.get("cpu", 0)
+            ram = vm.get("ram", 0)
+            ratio = cpu / ram if ram > 0 else float('inf')
+            
+            # Классификация VM
+            if ratio > 2.0:
+                profile = "cpu_intensive"
+            elif ratio < 0.5:
+                profile = "ram_intensive"
+            else:
+                profile = "balanced"
+                
+            vm_profiles[vm_id] = {
+                "profile": profile,
+                "ratio": ratio,
+                "total_demand": cpu + ram,
+                "cpu": cpu,
+                "ram": ram
+            }
+
+        # Создаем матрицу совместимости
+        compatibility_scores = {}
+        for vm_id, vm_profile in vm_profiles.items():
+            compatibility_scores[vm_id] = {}
+            for host_id, host_profile in host_profiles.items():
+                # Базовый скор совместимости
+                score = 1.0
+                
+                # Бонус за соответствие профилей
+                if (vm_profile["profile"] == "cpu_intensive" and host_profile["profile"] == "cpu_optimized") or \
+                   (vm_profile["profile"] == "ram_intensive" and host_profile["profile"] == "ram_optimized") or \
+                   (vm_profile["profile"] == "balanced" and host_profile["profile"] == "balanced"):
+                    score *= 1.5
+                
+                # Бонус за эффективное использование ресурсов
+                resource_utilization = max(
+                    vm_profile["cpu"] / host_profile["available_cpu"] if host_profile["available_cpu"] > 0 else float('inf'),
+                    vm_profile["ram"] / host_profile["available_ram"] if host_profile["available_ram"] > 0 else float('inf')
+                )
+                if 0.6 <= resource_utilization <= 0.8:
+                    score *= 1.3
+                
+                compatibility_scores[vm_id][host_id] = score
+
+        # Сортируем VM по приоритету (большие и сложные в размещении первыми)
         sorted_vms = sorted(
-            [(vm_id, vm) for vm_id, vm in self.vms.items()],
-            key=lambda x: (x[1].get("cpu", 0) + x[1].get("ram", 0), x[0]),
+            [(vm_id, vm_profiles[vm_id]) for vm_id in self.vms],
+            key=lambda x: (
+                x[1]["total_demand"],  # Сначала по общей потребности в ресурсах
+                abs(x[1]["ratio"] - 1.0),  # Затем по "сложности" размещения
+                x[0]  # Затем по ID для стабильности
+            ),
             reverse=True
         )
-        
-        # Сортируем хосты по возрастанию доступных ресурсов
-        sorted_hosts = sorted(
-            [(host_id, host) for host_id, host in self.hosts.items()],
-            key=lambda x: (x[1].get("cpu", 0) + x[1].get("ram", 0), x[0])
-        )
-        
+
         # Создаем новые размещения
         new_allocations = {host_id: [] for host_id in self.hosts}
         unplaced_vms = []
-        
-        # Пытаемся разместить каждую VM
-        for vm_id, vm in sorted_vms:
-            # Если VM уже размещена и размещение хорошее, оставляем как есть
+
+        # Размещаем VM с учетом совместимости и текущего состояния
+        for vm_id, vm_profile in sorted_vms:
+            # Если VM уже размещена успешно, пропускаем
             current_host = self.vm_to_host_map.get(vm_id)
             if current_host and current_host in self.hosts:
                 if self.can_host_vm(current_host, vm_id):
                     new_allocations[current_host].append(vm_id)
+                    # Обновляем доступные ресурсы
+                    host_profiles[current_host]["available_cpu"] -= vm_profile["cpu"]
+                    host_profiles[current_host]["available_ram"] -= vm_profile["ram"]
                     continue
-            
+
             # Ищем лучший хост для размещения
             best_host = None
-            best_utilization = float('inf')
-            
-            for host_id, _ in sorted_hosts:
-                if self.can_host_vm(host_id, vm_id):
-                    # Проверяем утилизацию после размещения
-                    test_allocation = new_allocations[host_id] + [vm_id]
-                    utilization = self.calculate_host_utilization(host_id, test_allocation)
-                    
-                    # Выбираем хост с наиболее оптимальной утилизацией
-                    if abs(utilization - TARGET_UTILIZATION) < abs(best_utilization - TARGET_UTILIZATION):
-                        best_host = host_id
-                        best_utilization = utilization
-            
+            best_score = float('-inf')
+
+            for host_id, host_profile in host_profiles.items():
+                if not self.can_host_vm(host_id, vm_id):
+                    continue
+
+                # Вычисляем итоговый скор размещения
+                score = compatibility_scores[vm_id][host_id]
+
+                # Учитываем текущую загрузку хоста
+                current_load = 1.0 - min(
+                    host_profile["available_cpu"] / self.hosts[host_id].get("cpu", 1),
+                    host_profile["available_ram"] / self.hosts[host_id].get("ram", 1)
+                )
+                if 0.4 <= current_load <= 0.7:
+                    score *= 1.2
+
+                # Учитываем количество VM на хосте
+                vm_count = len(new_allocations[host_id])
+                if vm_count < 3:  # Предпочитаем не перегружать хосты
+                    score *= 1.1
+
+                if score > best_score:
+                    best_score = score
+                    best_host = host_id
+
             if best_host:
                 new_allocations[best_host].append(vm_id)
+                # Обновляем доступные ресурсы
+                host_profiles[best_host]["available_cpu"] -= vm_profile["cpu"]
+                host_profiles[best_host]["available_ram"] -= vm_profile["ram"]
             else:
                 unplaced_vms.append(vm_id)
-        
+
         # Обрабатываем неразмещенные VM
         if unplaced_vms:
-            # Пытаемся освободить место путем перераспределения маленьких VM
             for vm_id in unplaced_vms:
-                placed = False
+                # Пытаемся найти место путем перераспределения
                 for host_id in sorted(self.hosts.keys()):
-                    # Пытаемся освободить место, перемещая маленькие VM
                     if self._try_make_space_for_vm(vm_id, host_id, new_allocations):
                         new_allocations[host_id].append(vm_id)
-                            placed = True
-                            break
-                    
-                    if not placed:
-                    # Если все еще не удалось разместить, пробуем более агрессивную стратегию
-                    for host_id in sorted(self.hosts.keys()):
-                        if self._try_aggressive_placement(vm_id, host_id, new_allocations):
-                            new_allocations[host_id].append(vm_id)
-                            placed = True
-                            break
-        
+                        vm = self.vms[vm_id]
+                        host_profiles[host_id]["available_cpu"] -= vm.get("cpu", 0)
+                        host_profiles[host_id]["available_ram"] -= vm.get("ram", 0)
+                        break
+
         # Обновляем размещения
         self.previous_allocations = new_allocations
 
@@ -1565,18 +1609,20 @@ class VMScheduler:
                     
                     for move_vm_id, _ in combination:
                         # Ищем подходящий хост
+                        found_host = False
                         for other_host_id in self.hosts:
                             if other_host_id != host_id:
                                 test_alloc = current_allocations[other_host_id][:]
                                 if self.can_host_vm(other_host_id, move_vm_id):
                                     moves[move_vm_id] = other_host_id
+                                    found_host = True
                                     break
                         
-                        if move_vm_id not in moves:
-                        success = False
-                        break
-                
-                if success:
+                        if not found_host:
+                            success = False
+                            break
+                    
+                    if success:
                         # Применяем перемещения
                         for move_vm_id, target_host in moves.items():
                             current_allocations[host_id].remove(move_vm_id)
