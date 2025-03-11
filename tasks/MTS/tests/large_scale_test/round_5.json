@@ -1,1 +1,0 @@
-{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768},"host3":{"cpu":48,"ram":1024},"host4":{"cpu":64,"ram":2048}},"virtual_machines":{"vm1":{"cpu":4,"ram":16},"vm2":{"cpu":8,"ram":32},"vm3":{"cpu":12,"ram":64},"vm4":{"cpu":16,"ram":128},"vm6":{"cpu":24,"ram":512}},"diff":{"remove":{"virtual_machines":["vm5"]}}} 

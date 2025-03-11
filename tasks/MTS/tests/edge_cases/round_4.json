@@ -1,1 +1,0 @@
-{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{"tiny_vm1":{"cpu":1,"ram":1},"tiny_vm2":{"cpu":1,"ram":1},"max_vm":{"cpu":32,"ram":768},"cpu_heavy":{"cpu":16,"ram":4},"ram_heavy":{"cpu":2,"ram":256}},"diff":{"add":{"virtual_machines":["ram_heavy"]}}} 
