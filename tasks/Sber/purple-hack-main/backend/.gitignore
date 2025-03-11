@@ -1,8 +1,0 @@
-__pycache__/
-venv/ 
-.idea/
-.vscode/
-.env
-data/
-.pytest_cache/
-исходные данные.xml
