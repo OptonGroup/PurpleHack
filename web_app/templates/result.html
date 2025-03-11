@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат оптимизации</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Оптимизатор календарного плана</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/results">Результаты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs-json">Документация</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основное содержимое -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h2>Результат оптимизации</h2>
+                        <div>
+                            <a href="/results" class="btn btn-sm btn-light">
+                                <i class="bi bi-arrow-left"></i> Назад к результатам
+                            </a>
+                            {% if status.status == "completed" %}
+                            <a href="/api/download/{{ job_id }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-download"></i> Скачать JSON
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h4>Информация о задаче</h4>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th style="width: 200px">ID задачи</th>
+                                <td>{{ job_id }}</td>
+                            </tr>
+                            <tr>
+                                <th>Статус</th>
+                                <td>
+                                    {% if status.status == "completed" %}
+                                    <span class="badge bg-success">Завершена</span>
+                                    {% elif status.status == "failed" %}
+                                    <span class="badge bg-danger">Ошибка</span>
+                                    {% elif status.status == "running" %}
+                                    <span class="badge bg-primary">Выполняется</span>
+                                    <div class="progress mt-2">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                    {% else %}
+                                    <span class="badge bg-secondary">В очереди</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Время создания</th>
+                                <td>{{ status.created_at }}</td>
+                            </tr>
+                            {% if status.end_time is defined %}
+                            <tr>
+                                <th>Время завершения</th>
+                                <td>{{ status.end_time }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th>Параметры оптимизации</th>
+                                <td>
+                                    <ul>
+                                        <li>Вес длительности: {{ status.params.duration_weight }}</li>
+                                        <li>Вес ресурсов: {{ status.params.resource_weight }}</li>
+                                        <li>Вес стоимости: {{ status.params.cost_weight }}</li>
+                                        <li>Количество эпизодов: {{ status.params.num_episodes }}</li>
+                                        <li>Использование предобученной модели: {{ "Да" if status.params.use_pretrained_model else "Нет" }}</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            {% if status.error is defined %}
+                            <tr>
+                                <th>Ошибка</th>
+                                <td class="text-danger">{{ status.error }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+
+                        {% if status.status == "completed" and result %}
+                        <h4 class="mt-4">Результаты оптимизации</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Длительность проекта</h5>
+                                        <p class="display-4">{{ result.totalDuration }}</p>
+                                        <p class="text-muted">дней</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Использование ресурсов</h5>
+                                        <p class="display-4">{{ result.resourceUtilization|round(1) }}</p>
+                                        <p class="text-muted">%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Общая стоимость</h5>
+                                        <p class="display-4">{{ result.totalCost|round(2) }}</p>
+                                        <p class="text-muted">у.е.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="mt-4">Расписание задач</h4>
+                        <div class="gantt-container">
+                            <div id="gantt"></div>
+                        </div>
+
+                        <h4 class="mt-4">Список задач</h4>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID задачи</th>
+                                        <th>Дата начала</th>
+                                        <th>Дата окончания</th>
+                                        <th>Длительность</th>
+                                        <th>Ресурс</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in result.tasks %}
+                                    <tr>
+                                        <td>{{ task.id }}</td>
+                                        <td>{{ task.startDate }}</td>
+                                        <td>{{ task.endDate }}</td>
+                                        <td>
+                                            {% set start = task.startDate.split('T')[0] %}
+                                            {% set end = task.endDate.split('T')[0] %}
+                                            {% if start and end %}
+                                                {{ (task.endDate.split('T')[0]|string != task.startDate.split('T')[0]|string) and 
+                                                   ((task.endDate.split('T')[0]|string|replace('-', '')|int - task.startDate.split('T')[0]|string|replace('-', '')|int) // 100) + 1 
+                                                   or 1 }} дн.
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ task.assignedResourceId }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% elif status.status == "running" or status.status == "pending" %}
+                        <div class="alert alert-info mt-4">
+                            <h4 class="alert-heading">Оптимизация в процессе</h4>
+                            <p>Пожалуйста, подождите. Страница будет автоматически обновляться каждые 5 секунд.</p>
+                        </div>
+                        {% elif status.status == "failed" %}
+                        <div class="alert alert-danger mt-4">
+                            <h4 class="alert-heading">Ошибка оптимизации</h4>
+                            <p>Произошла ошибка при выполнении оптимизации. Попробуйте запустить процесс еще раз.</p>
+                            {% if status.error %}
+                            <hr>
+                            <p class="mb-0">Подробности ошибки: {{ status.error }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container text-center">
+            <p>© 2023 Оптимизатор календарного плана</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+    <script>
+        // Функция для преобразования задач в формат Gantt
+        function convertTasksToGantt(tasks) {
+            return tasks.map(task => {
+                return {
+                    id: task.id,
+                    name: 'Задача ' + task.id,
+                    start: new Date(task.startDate),
+                    end: new Date(task.endDate),
+                    progress: 100,
+                    dependencies: [],
+                    custom_class: 'resource-' + (task.assignedResourceId ? task.assignedResourceId.replace(/\W/g, '_') : 'none')
+                };
+            });
+        }
+
+        // Функция для инициализации диаграммы Ганта
+        function initGantt() {
+            const resultData = {{ result|tojson }};
+            
+            if (resultData && resultData.tasks && resultData.tasks.length > 0) {
+                const ganttTasks = convertTasksToGantt(resultData.tasks);
+                
+                const gantt = new Gantt("#gantt", ganttTasks, {
+                    header_height: 50,
+                    column_width: 30,
+                    step: 24,
+                    view_mode: 'Day',
+                    date_format: 'YYYY-MM-DD',
+                    custom_popup_html: task => {
+                        const originalTask = resultData.tasks.find(t => t.id === task.id);
+                        return `
+                            <div class="gantt-popup">
+                                <h5>Задача ${task.id}</h5>
+                                <p>Начало: ${originalTask.startDate.split('T')[0]}</p>
+                                <p>Окончание: ${originalTask.endDate.split('T')[0]}</p>
+                                <p>Ресурс: ${originalTask.assignedResourceId || 'Не назначен'}</p>
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }
+
+        // Инициализация Gantt-диаграммы при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if status.status == "completed" and result %}
+            initGantt();
+            {% elif status.status == "running" or status.status == "pending" %}
+            // Автообновление страницы каждые 5 секунд для отслеживания статуса
+            setTimeout(function() {
+                location.reload();
+            }, 5000);
+            {% endif %}
+        });
+    </script>
+</body>
+</html> 

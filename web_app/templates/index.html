@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оптимизатор календарного плана</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Навигационная панель -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Оптимизатор календарного плана</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/results">Результаты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/docs-json">Документация</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основное содержимое -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2>Оптимизация календарного плана проекта</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>Загрузите JSON-файл с описанием проекта и настройте параметры оптимизации для создания оптимального календарного плана.</p>
+                        
+                        <!-- Отображение ошибок и предупреждений, если они есть -->
+                        {% if errors %}
+                        <div class="alert alert-danger">
+                            <h5>Ошибки:</h5>
+                            <ul>
+                                {% for error in errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        {% if warnings %}
+                        <div class="alert alert-warning">
+                            <h5>Предупреждения:</h5>
+                            <ul>
+                                {% for warning in warnings %}
+                                <li>{{ warning }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Форма загрузки файла -->
+                        <form action="/upload" method="post" enctype="multipart/form-data" class="mt-3">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">JSON-файл с описанием проекта</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+                                <div class="form-text">Загрузите файл в формате JSON с описанием задач, ресурсов и зависимостей проекта.</div>
+                            </div>
+                            
+                            <h5>Параметры оптимизации</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="duration_weight" class="form-label">Вес длительности проекта</label>
+                                        <input type="number" class="form-control" id="duration_weight" name="duration_weight" value="7.0" step="0.1" min="0" required>
+                                        <div class="form-text">Чем выше значение, тем больше приоритет минимизации длительности проекта.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="resource_weight" class="form-label">Вес использования ресурсов</label>
+                                        <input type="number" class="form-control" id="resource_weight" name="resource_weight" value="3.0" step="0.1" min="0" required>
+                                        <div class="form-text">Чем выше значение, тем больше приоритет оптимального использования ресурсов.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="cost_weight" class="form-label">Вес стоимости</label>
+                                        <input type="number" class="form-control" id="cost_weight" name="cost_weight" value="1.0" step="0.1" min="0" required>
+                                        <div class="form-text">Чем выше значение, тем больше приоритет минимизации общей стоимости проекта.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="num_episodes" class="form-label">Количество эпизодов обучения</label>
+                                        <input type="number" class="form-control" id="num_episodes" name="num_episodes" value="500" min="1" required>
+                                        <div class="form-text">Большее количество эпизодов улучшает результат, но увеличивает время оптимизации.</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <div class="form-check mt-4">
+                                            <input class="form-check-input" type="checkbox" value="true" id="use_pretrained_model" name="use_pretrained_model">
+                                            <label class="form-check-label" for="use_pretrained_model">
+                                                Использовать предобученную модель
+                                            </label>
+                                        </div>
+                                        <div class="form-text">Использование предобученной модели ускоряет оптимизацию, но может дать менее точные результаты.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">Запустить оптимизацию</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4>Как это работает?</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-3">
+                                <div class="step-circle">1</div>
+                                <h5>Загрузка данных</h5>
+                                <p>Загрузите JSON-файл с описанием задач, ресурсов и зависимостей проекта</p>
+                            </div>
+                            <div class="col-md-4 text-center mb-3">
+                                <div class="step-circle">2</div>
+                                <h5>Оптимизация</h5>
+                                <p>Наш алгоритм на основе обучения с подкреплением создаст оптимальный план</p>
+                            </div>
+                            <div class="col-md-4 text-center mb-3">
+                                <div class="step-circle">3</div>
+                                <h5>Результаты</h5>
+                                <p>Получите оптимизированный план проекта в виде JSON-файла и визуализации</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container text-center">
+            <p>© 2023 Оптимизатор календарного плана</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html> 
