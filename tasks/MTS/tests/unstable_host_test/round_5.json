@@ -1,0 +1,20 @@
+{
+    "hosts": {
+        "stable_host_1": {"cpu": 32, "ram": 64},
+        "stable_host_2": {"cpu": 24, "ram": 48},
+        "unstable_host_1": {"cpu": 28, "ram": 56},
+        "unstable_host_2": {"cpu": 24, "ram": 48},
+        "very_unstable_host": {"cpu": 8, "ram": 16}
+    },
+    "virtual_machines": {
+        "critical_vm_1": {"cpu": 8, "ram": 16},
+        "critical_vm_2": {"cpu": 10, "ram": 20},
+        "regular_vm_1": {"cpu": 6, "ram": 12},
+        "regular_vm_3": {"cpu": 5, "ram": 10}
+    },
+    "diff": {
+        "remove": {
+            "virtual_machines": ["regular_vm_2"]
+        }
+    }
+} 
