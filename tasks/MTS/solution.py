@@ -456,76 +456,220 @@ class VMScheduler:
             for vm_id in vm_list:
                 new_vm_to_host[vm_id] = host_id
         
-        # Быстрая проверка необходимости миграций
-        potential_migrations = []
-        for vm_id, new_host in new_vm_to_host.items():
-            old_host = self.vm_to_host_map.get(vm_id)
-            if old_host and old_host != new_host:
-                # Быстрая оценка выгоды от миграции
-                old_host_state = self.calculate_host_capacity(old_host, self.previous_allocations)
-                new_host_state = self.calculate_host_capacity(new_host, new_allocations)
-                
-                # Если утилизация обоих хостов близка к целевой, пропускаем
-                if (abs(old_host_state["max_utilization"] - TARGET_UTILIZATION) < 0.1 and
-                    abs(new_host_state["max_utilization"] - TARGET_UTILIZATION) < 0.1):
-                    continue
-                
-                # Если утилизация нового хоста слишком высокая, пропускаем
-                if new_host_state["max_utilization"] > UPPER_THRESHOLD:
-                    continue
-                
-                # Добавляем в список потенциальных миграций
-                potential_migrations.append((vm_id, old_host, new_host))
+        # Вычисляем метрики для всех хостов
+        host_metrics = {}
+        for host_id in self.hosts:
+            state = self.calculate_host_capacity(host_id, new_allocations)
+            host_metrics[host_id] = {
+                "utilization": state["max_utilization"],
+                "cpu_ratio": state["capacity"]["cpu"] / max(state["capacity"]["ram"], 1),
+                "total_resources": state["capacity"]["cpu"] + state["capacity"]["ram"]
+            }
         
-        # Сортируем потенциальные миграции по приоритету
-        potential_migrations.sort(
-            key=lambda x: (
-                # Приоритет выше для VM на хостах с высокой утилизацией
-                self.calculate_host_capacity(x[1], self.previous_allocations)["max_utilization"],
-                # Приоритет выше для больших VM
-                -(self.vms[x[0]].get("cpu", 0) + self.vms[x[0]].get("ram", 0))
-            ),
-            reverse=True
-        )
+        # Находим хосты с высокой и низкой утилизацией
+        overloaded_hosts = [
+            host_id for host_id, metrics in host_metrics.items()
+            if metrics["utilization"] > UPPER_THRESHOLD
+        ]
+        underloaded_hosts = [
+            host_id for host_id, metrics in host_metrics.items()
+            if metrics["utilization"] < LOWER_THRESHOLD and len(new_allocations[host_id]) > 0
+        ]
         
-        # Оцениваем только самые перспективные миграции
-        for vm_id, old_host, new_host in potential_migrations[:MAX_MIGRATIONS * 2]:
+        # Сортируем хосты по утилизации
+        overloaded_hosts.sort(key=lambda h: host_metrics[h]["utilization"], reverse=True)
+        underloaded_hosts.sort(key=lambda h: host_metrics[h]["utilization"])
+        
+        # Пытаемся разгрузить перегруженные хосты
+        for source_host in overloaded_hosts:
             if len(migrations) >= MAX_MIGRATIONS:
                 break
                 
-            # Создаем тестовое размещение без миграции
-            test_allocations = {
-                host_id: [vm for vm in vms if vm != vm_id]
-                for host_id, vms in new_allocations.items()
-            }
-            if old_host in test_allocations:
-                test_allocations[old_host].append(vm_id)
+            source_vms = sorted(
+                new_allocations[source_host],
+                key=lambda vm_id: (
+                    # Приоритет VM с наибольшим несоответствием по CPU/RAM
+                    abs(self.vms[vm_id].get("cpu", 0) / max(self.vms[vm_id].get("ram", 1), 1) - 
+                        host_metrics[source_host]["cpu_ratio"]),
+                    # Затем по размеру
+                    -(self.vms[vm_id].get("cpu", 0) + self.vms[vm_id].get("ram", 0))
+                )
+            )
             
-            # Оценка без миграции
-            no_migration_score = self.calculate_total_score(test_allocations, migrations)
-            
-            # Оценка с миграцией
-            migration_score = self.calculate_total_score(new_allocations, migrations + [{"vm": vm_id, "source": old_host, "destination": new_host}])
-            
-            # Вычисляем выгоду от миграции
-            benefit = migration_score - no_migration_score
-            
-            # Проверяем, стоит ли выполнять миграцию
-            if benefit > MIN_BENEFIT_FOR_MIGRATION:
-                migrations.append({
-                    "vm": vm_id,
-                    "source": old_host,
-                    "destination": new_host
-                })
-                self.current_round_migrations.add(vm_id)
-                print(f"Migration: VM {vm_id} from {old_host} to {new_host} (benefit: {benefit})", file=sys.stderr)
-            else:
-                # Отменяем миграцию, если выгода недостаточна
-                if old_host in new_allocations:
-                    new_allocations[old_host].append(vm_id)
-                if new_host in new_allocations:
-                    new_allocations[new_host].remove(vm_id)
-                print(f"Cancelled migration of VM {vm_id} (benefit: {benefit} < {MIN_BENEFIT_FOR_MIGRATION})", file=sys.stderr)
+            for vm_id in source_vms:
+                if vm_id in self.current_round_migrations:
+                    continue
+                    
+                # Ищем лучший хост для миграции
+                best_host = None
+                best_score = float('-inf')
+                best_benefit = 0
+                
+                # Сначала проверяем недогруженные хосты
+                candidate_hosts = underloaded_hosts.copy()
+                # Затем добавляем хосты с нормальной утилизацией
+                candidate_hosts.extend([
+                    host_id for host_id in self.hosts
+                    if host_id not in overloaded_hosts and host_id not in underloaded_hosts
+                ])
+                
+                for dest_host in candidate_hosts:
+                    if not self.can_host_vm(dest_host, vm_id):
+                        continue
+                        
+                    # Создаем тестовое размещение
+                    test_allocations = {
+                        h: [vm for vm in vms if vm != vm_id]
+                        for h, vms in new_allocations.items()
+                    }
+                    test_allocations[dest_host].append(vm_id)
+                    
+                    # Оценка без миграции
+                    no_migration_score = self.calculate_total_score(new_allocations, migrations)
+                    
+                    # Оценка с миграцией
+                    migration = {"vm": vm_id, "source": source_host, "destination": dest_host}
+                    migration_score = self.calculate_total_score(test_allocations, migrations + [migration])
+                    
+                    # Вычисляем выгоду
+                    benefit = migration_score - no_migration_score
+                    
+                    # Учитываем дополнительные факторы
+                    dest_state = self.calculate_host_capacity(dest_host, test_allocations)
+                    
+                    # Бонус за улучшение баланса утилизации
+                    balance_bonus = 0
+                    if (abs(dest_state["max_utilization"] - TARGET_UTILIZATION) <
+                        abs(host_metrics[source_host]["utilization"] - TARGET_UTILIZATION)):
+                        balance_bonus = 5
+                    
+                    # Бонус за консолидацию на недогруженных хостах
+                    consolidation_bonus = 0
+                    if dest_host in underloaded_hosts:
+                        consolidation_bonus = 3
+                    
+                    total_score = benefit + balance_bonus + consolidation_bonus
+                    
+                    if total_score > best_score:
+                        best_score = total_score
+                        best_host = dest_host
+                        best_benefit = benefit
+                
+                if best_host and best_benefit > MIN_BENEFIT_FOR_MIGRATION:
+                    migration = {
+                        "vm": vm_id,
+                        "source": source_host,
+                        "destination": best_host
+                    }
+                    migrations.append(migration)
+                    self.current_round_migrations.add(vm_id)
+                    
+                    # Обновляем размещения и метрики
+                    new_allocations[source_host].remove(vm_id)
+                    new_allocations[best_host].append(vm_id)
+                    
+                    source_state = self.calculate_host_capacity(source_host, new_allocations)
+                    dest_state = self.calculate_host_capacity(best_host, new_allocations)
+                    
+                    host_metrics[source_host]["utilization"] = source_state["max_utilization"]
+                    host_metrics[best_host]["utilization"] = dest_state["max_utilization"]
+                    
+                    print(f"Migration: VM {vm_id} from {source_host} to {best_host} "
+                          f"(benefit: {best_benefit}, total score: {best_score})", file=sys.stderr)
+                    
+                    if len(migrations) >= MAX_MIGRATIONS:
+                        break
+                else:
+                    print(f"Cancelled migration of VM {vm_id} "
+                          f"(best benefit: {best_benefit} < {MIN_BENEFIT_FOR_MIGRATION})", file=sys.stderr)
+        
+        # Пытаемся консолидировать VM с недогруженных хостов
+        if len(migrations) < MAX_MIGRATIONS:
+            for source_host in underloaded_hosts:
+                if len(migrations) >= MAX_MIGRATIONS:
+                    break
+                    
+                if not new_allocations[source_host]:
+                    continue
+                    
+                # Пытаемся переместить все VM с недогруженного хоста
+                source_vms = sorted(
+                    new_allocations[source_host],
+                    key=lambda vm_id: self.vms[vm_id].get("cpu", 0) + self.vms[vm_id].get("ram", 0)
+                )
+                
+                for vm_id in source_vms:
+                    if vm_id in self.current_round_migrations:
+                        continue
+                        
+                    # Ищем хост с подходящей утилизацией
+                    best_host = None
+                    best_score = float('-inf')
+                    best_benefit = 0
+                    
+                    for dest_host in self.hosts:
+                        if dest_host == source_host or not self.can_host_vm(dest_host, vm_id):
+                            continue
+                            
+                        # Пропускаем перегруженные хосты
+                        if host_metrics[dest_host]["utilization"] > UPPER_THRESHOLD:
+                            continue
+                            
+                        # Создаем тестовое размещение
+                        test_allocations = {
+                            h: [vm for vm in vms if vm != vm_id]
+                            for h, vms in new_allocations.items()
+                        }
+                        test_allocations[dest_host].append(vm_id)
+                        
+                        # Оценка без миграции
+                        no_migration_score = self.calculate_total_score(new_allocations, migrations)
+                        
+                        # Оценка с миграцией
+                        migration = {"vm": vm_id, "source": source_host, "destination": dest_host}
+                        migration_score = self.calculate_total_score(test_allocations, migrations + [migration])
+                        
+                        benefit = migration_score - no_migration_score
+                        
+                        # Бонус за возможность выключения хоста
+                        shutdown_bonus = 0
+                        if len(new_allocations[source_host]) == 1:  # Последняя VM на хосте
+                            shutdown_bonus = 10
+                        
+                        total_score = benefit + shutdown_bonus
+                        
+                        if total_score > best_score:
+                            best_score = total_score
+                            best_host = dest_host
+                            best_benefit = benefit
+                    
+                    if best_host and best_benefit > MIN_BENEFIT_FOR_MIGRATION:
+                        migration = {
+                            "vm": vm_id,
+                            "source": source_host,
+                            "destination": best_host
+                        }
+                        migrations.append(migration)
+                        self.current_round_migrations.add(vm_id)
+                        
+                        # Обновляем размещения и метрики
+                        new_allocations[source_host].remove(vm_id)
+                        new_allocations[best_host].append(vm_id)
+                        
+                        source_state = self.calculate_host_capacity(source_host, new_allocations)
+                        dest_state = self.calculate_host_capacity(best_host, new_allocations)
+                        
+                        host_metrics[source_host]["utilization"] = source_state["max_utilization"]
+                        host_metrics[best_host]["utilization"] = dest_state["max_utilization"]
+                        
+                        print(f"Consolidation: VM {vm_id} from {source_host} to {best_host} "
+                              f"(benefit: {best_benefit}, total score: {best_score})", file=sys.stderr)
+                        
+                        if len(migrations) >= MAX_MIGRATIONS:
+                            break
+                    else:
+                        print(f"Cancelled consolidation of VM {vm_id} "
+                              f"(best benefit: {best_benefit} < {MIN_BENEFIT_FOR_MIGRATION})", file=sys.stderr)
         
         return migrations
 
