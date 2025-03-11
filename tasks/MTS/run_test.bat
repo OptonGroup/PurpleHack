@@ -1,0 +1,2 @@
+@echo off
+type resources\example_input_multiple_rounds.txt | docker run --cpus 3 --init --interactive --memory 2GB --network none --no-healthcheck --read-only --tmpfs /tmp:rw,noexec,nosuid --ulimit cpu=60 mws-scheduler 

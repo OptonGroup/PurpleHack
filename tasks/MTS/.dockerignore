@@ -1,0 +1,13 @@
+ # Исключаем все файлы, кроме необходимых для работы решения
+**/*
+!solution.py
+!run.sh
+!README.md
+
+# Исключаем кэш Python и другие временные файлы
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.coverage
+**/.DS_Store

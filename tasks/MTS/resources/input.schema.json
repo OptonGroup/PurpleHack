@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/Input",
+  "definitions": {
+    "Input": {
+      "type": "object",
+      "required": [
+        "hosts",
+        "virtual_machines"
+      ],
+      "properties": {
+        "hosts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/HostName"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/Host"
+          }
+        },
+        "virtual_machines": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/VirtualMachineName"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/VirtualMachine"
+          }
+        },
+        "diff": {
+          "$ref": "#/definitions/Diff"
+        }
+      },
+      "patternProperties": {
+        "^(\\$|x-)": {}
+      },
+      "additionalProperties": false
+    },
+    "Host": {
+      "type": "object",
+      "required": [
+        "cpu",
+        "ram"
+      ],
+      "properties": {
+        "cpu": {
+          "$ref": "#/definitions/Amount"
+        },
+        "ram": {
+          "$ref": "#/definitions/Amount"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VirtualMachine": {
+      "type": "object",
+      "required": [
+        "cpu",
+        "ram"
+      ],
+      "properties": {
+        "cpu": {
+          "$ref": "#/definitions/Amount"
+        },
+        "ram": {
+          "$ref": "#/definitions/Amount"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Diff": {
+      "type": "object",
+      "properties": {
+        "add": {
+          "$ref": "#/definitions/HalfDiff"
+        },
+        "remove": {
+          "$ref": "#/definitions/HalfDiff"
+        }
+      },
+      "additionalProperties": false
+    },
+    "HalfDiff": {
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HostName"
+          },
+          "uniqueItems": true
+        },
+        "virtual_machines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VirtualMachineName"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "Amount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 32767
+    },
+    "HostName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63
+    },
+    "VirtualMachineName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63
+    }
+  }
+}
