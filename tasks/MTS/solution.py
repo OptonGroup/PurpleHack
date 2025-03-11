@@ -198,7 +198,7 @@ class VMScheduler:
                     
                     # Пытаемся разобрать JSON
                     data = json.loads(line)
-                    print(f"Processing input round {self.round_counter + 1}: {line[:100]}...", file=sys.stderr)
+                    # print(f"Processing input round {self.round_counter + 1}: {line[:100]}...", file=sys.stderr)  # Закомментировано
                     
                     # Если успешно, обрабатываем данные
                     self.load_data(data)
@@ -221,7 +221,6 @@ class VMScheduler:
                     sys.stdout.flush()
                     
                     # Сохраняем текущие размещения как предыдущие для следующего раунда
-                    # Используем более оптимальное копирование
                     self.previous_allocations = {host_id: list(vms) for host_id, vms in new_allocations.items()}
                     
                     # Сохраняем статистику миграций
@@ -232,56 +231,56 @@ class VMScheduler:
                     self.performance_stats["round_time"].append(end_time - start_time)
                     
                     # Выводим статистику производительности
-                    print(f"Round {self.round_counter + 1} completed in {end_time - start_time:.4f} sec. "
-                          f"Cache: {CACHE_STATS['hits']} hits, {CACHE_STATS['misses']} misses. "
-                          f"Migrations: {len(migrations)}", file=sys.stderr)
+                    # print(f"Round {self.round_counter + 1} completed in {end_time - start_time:.4f} sec. "
+                    #       f"Cache: {CACHE_STATS['hits']} hits, {CACHE_STATS['misses']} misses. "
+                    #       f"Migrations: {len(migrations)}", file=sys.stderr)  # Закомментировано
                     
                     self.round_counter += 1
                     
                 except json.JSONDecodeError as e:
-                    print(f"Error decoding JSON: {e}", file=sys.stderr)
+                    # print(f"Error decoding JSON: {e}", file=sys.stderr)  # Закомментировано
                     continue
                 except Exception as e:
-                    print(f"Error processing data: {e}", file=sys.stderr)
-                    import traceback
-                    traceback.print_exc(file=sys.stderr)
+                    # print(f"Error processing data: {e}", file=sys.stderr)  # Закомментировано
+                    # import traceback
+                    # traceback.print_exc(file=sys.stderr)  # Закомментировано
                     continue
                     
         except Exception as e:
-            print(f"Error in process_input: {e}", file=sys.stderr)
-            import traceback
-            traceback.print_exc(file=sys.stderr)
-            raise
+            # print(f"Fatal error: {e}", file=sys.stderr)  # Закомментировано
+            # import traceback
+            # traceback.print_exc(file=sys.stderr)  # Закомментировано
+            sys.exit(1)
 
     def load_data(self, data: Dict) -> None:
         """Загружает входные данные."""
         try:
-            print(f"Loading data for round {self.round_counter}...", file=sys.stderr)
+            # print(f"Loading data for round {self.round_counter}...", file=sys.stderr)  # Закомментировано
             
             # Загружаем хосты (только в первом раунде)
             if self.round_counter == 0:
                 self.hosts = data.get("hosts", {})
-                print(f"Loaded hosts: {len(self.hosts)}", file=sys.stderr)
+                # print(f"Loaded hosts: {len(self.hosts)}", file=sys.stderr)  # Закомментировано
             
             # Загружаем виртуальные машины (без глубокого копирования)
             self.vms = data.get("virtual_machines", {})
-            print(f"Loaded VMs: {len(self.vms)}", file=sys.stderr)
+            # print(f"Loaded VMs: {len(self.vms)}", file=sys.stderr)  # Закомментировано
             
             # Обрабатываем изменения
             diff = data.get("diff", {})
-            print(f"Processing diff: {diff}", file=sys.stderr)
+            # print(f"Processing diff: {diff}", file=sys.stderr)  # Закомментировано
             
             # Добавляем новые VM
             if "add" in diff:
                 new_vms = diff["add"].get("virtual_machines", [])
-                print(f"Added VMs: {new_vms}", file=sys.stderr)
+                # print(f"Added VMs: {new_vms}", file=sys.stderr)  # Закомментировано
                 # Сбрасываем список неразмещенных VM при добавлении новых
                 self.allocation_failures = []
             
             # Удаляем VM
             if "remove" in diff:
                 removed_vms = diff["remove"].get("virtual_machines", [])
-                print(f"Removed VMs: {removed_vms}", file=sys.stderr)
+                # print(f"Removed VMs: {removed_vms}", file=sys.stderr)  # Закомментировано
                 
                 # Удаляем VM из предыдущих размещений (оптимизировано)
                 for host_id in self.previous_allocations:
@@ -294,26 +293,26 @@ class VMScheduler:
                 for vm_id in vm_list:
                     if vm_id in self.vms:  # Проверяем, что VM все еще существует
                         self.vm_to_host_map[vm_id] = host_id
-            print(f"Updated VM to host map: {len(self.vm_to_host_map)} mappings", file=sys.stderr)
+            # print(f"Updated VM to host map: {len(self.vm_to_host_map)} mappings", file=sys.stderr)  # Закомментировано
             
             # Обновляем множество хостов с предыдущими VM
             self.hosts_with_previous_vms = {
                 host_id for host_id, vm_list in self.previous_allocations.items()
                 if vm_list and host_id in self.hosts
             }
-            print(f"Updated hosts with previous VMs: {len(self.hosts_with_previous_vms)} hosts", file=sys.stderr)
+            # print(f"Updated hosts with previous VMs: {len(self.hosts_with_previous_vms)} hosts", file=sys.stderr)  # Закомментировано
             
             # Инициализируем счетчик хостов с нулевой утилизацией при необходимости
             if not self.host_zero_utilization_count:
                 self.host_zero_utilization_count = {host_id: 0 for host_id in self.hosts}
-                print(f"Initialized zero utilization counters for {len(self.hosts)} hosts", file=sys.stderr)
+                # print(f"Initialized zero utilization counters for {len(self.hosts)} hosts", file=sys.stderr)  # Закомментировано
             
             # Обновляем счетчики хостов с нулевой утилизацией
             for host_id in self.hosts:
                 host_vms = self.previous_allocations.get(host_id, [])
                 if not host_vms:
                     self.host_zero_utilization_count[host_id] = self.host_zero_utilization_count.get(host_id, 0) + 1
-                    print(f"Host {host_id} has zero utilization for {self.host_zero_utilization_count[host_id]} rounds", file=sys.stderr)
+                    # print(f"Host {host_id} has zero utilization for {self.host_zero_utilization_count[host_id]} rounds", file=sys.stderr)  # Закомментировано
                 else:
                     self.host_zero_utilization_count[host_id] = 0
             
@@ -321,23 +320,23 @@ class VMScheduler:
             self.update_hosts_to_shutdown()
             
         except Exception as e:
-            print(f"Error in load_data: {e}", file=sys.stderr)
-            import traceback
-            traceback.print_exc(file=sys.stderr)
+            # print(f"Error in load_data: {e}", file=sys.stderr)  # Закомментировано
+            # import traceback
+            # traceback.print_exc(file=sys.stderr)  # Закомментировано
             raise
             
     def update_hosts_to_shutdown(self):
         """Обновляет список хостов, которые следует выключить для получения бонусов."""
         # Оцениваем необходимое количество хостов
         required_hosts = self.estimate_required_hosts()
-        print(f"Estimated required hosts: {required_hosts} out of {len(self.hosts)}", file=sys.stderr)
+        # print(f"Estimated required hosts: {required_hosts} out of {len(self.hosts)}", file=sys.stderr)  # Закомментировано
         
         # Хосты, которые уже близки к получению бонуса (4+ раунда с нулевой утилизацией)
         almost_bonus_hosts = {
             host_id for host_id, count in self.host_zero_utilization_count.items()
             if count >= 4 and host_id in self.hosts_with_previous_vms
         }
-        print(f"Hosts close to bonus: {almost_bonus_hosts}", file=sys.stderr)
+        # print(f"Hosts close to bonus: {almost_bonus_hosts}", file=sys.stderr)  # Закомментировано
         
         # Хосты с низкой утилизацией, которые можно выключить
         low_utilization_hosts = []
@@ -366,7 +365,7 @@ class VMScheduler:
             if len(self.hosts_to_shutdown) < hosts_to_shutdown_count and host_id not in self.hosts_to_shutdown:
                 self.hosts_to_shutdown.add(host_id)
         
-        print(f"Hosts to shutdown: {self.hosts_to_shutdown}", file=sys.stderr)
+        # print(f"Hosts to shutdown: {self.hosts_to_shutdown}", file=sys.stderr)  # Закомментировано
 
     def can_host_vm(self, host_id: str, vm_id: str, existing_capacity: Optional[Dict] = None) -> bool:
         """Проверяет, может ли хост разместить указанную VM."""
@@ -466,11 +465,11 @@ class VMScheduler:
         required_hosts = self.estimate_required_hosts()
         active_hosts = sum(1 for util in hosts_utilization.values() if util > 0)
         
-        print(f"Selecting hosts for shutdown. Required: {required_hosts}, Active: {active_hosts}", file=sys.stderr)
+        # print(f"Selecting hosts for shutdown. Required: {required_hosts}, Active: {active_hosts}", file=sys.stderr)  # Закомментировано
         
         # Если активных хостов меньше необходимого, не выключаем хосты
         if active_hosts <= required_hosts:
-            print("Not enough active hosts for shutdown", file=sys.stderr)
+            # print("Not enough active hosts for shutdown", file=sys.stderr)  # Закомментировано
             return
         
         # Сортируем хосты по приоритету выключения
@@ -514,13 +513,13 @@ class VMScheduler:
             3  # Ограничиваем количеством возможных миграций
         )
         
-        print(f"Host shutdown candidates (priority, vm_count, utilization):", file=sys.stderr)
-        for host_id, priority, vm_count, utilization in host_shutdown_priority[:5]:
-            print(f"  {host_id}: priority={priority:.2f}, vm_count={vm_count}, util={utilization:.2f}", file=sys.stderr)
+        # print(f"Host shutdown candidates (priority, vm_count, utilization):", file=sys.stderr)  # Закомментировано
+        # for host_id, priority, vm_count, utilization in host_shutdown_priority[:5]:
+        #     print(f"  {host_id}: priority={priority:.2f}, vm_count={vm_count}, util={utilization:.2f}", file=sys.stderr)  # Закомментировано
         
         for host_id, priority, vm_count, utilization in host_shutdown_priority[:hosts_to_shutdown_count]:
             self.hosts_to_shutdown.add(host_id)
-            print(f"Selected host {host_id} for shutdown (priority: {priority:.2f}, VMs: {vm_count}, util: {utilization:.2f})", file=sys.stderr)
+            # print(f"Selected host {host_id} for shutdown (priority: {priority:.2f}, VMs: {vm_count}, util: {utilization:.2f})", file=sys.stderr)  # Закомментировано
         
         # Если есть хосты, близкие к получению бонуса, но они не попали в список,
         # добавляем их принудительно (если это не сильно превышает ограничения)
@@ -531,11 +530,11 @@ class VMScheduler:
             zero_count = self.host_zero_utilization_count.get(host_id, 0)
             if zero_count >= BONUS_THRESHOLD - 1 and host_id in self.hosts_with_previous_vms:
                 self.hosts_to_shutdown.add(host_id)
-                print(f"Adding host {host_id} to shutdown list because it's close to bonus (zero count: {zero_count})", file=sys.stderr)
+                # print(f"Adding host {host_id} to shutdown list because it's close to bonus (zero count: {zero_count})", file=sys.stderr)  # Закомментировано
 
     def place_vms(self) -> Dict[str, List[str]]:
         """Размещает VM на хостах."""
-        print(f"\nStarting VM placement for round {self.round_counter}...", file=sys.stderr)
+        # print(f"\nStarting VM placement for round {self.round_counter}...", file=sys.stderr)  # Закомментировано
         
         # Инициализируем новые размещения на основе предыдущих (без deep copy)
         new_allocations = {host_id: list(vms) for host_id, vms in self.previous_allocations.items()}
@@ -556,11 +555,11 @@ class VMScheduler:
         )
         
         # Выводим информацию о текущей утилизации
-        print(f"Current host utilization: {hosts_utilization}", file=sys.stderr)
+        # print(f"Current host utilization: {hosts_utilization}", file=sys.stderr)  # Закомментировано
         
         # Оцениваем необходимое количество хостов
         required_hosts = self.estimate_required_hosts()
-        print(f"Required hosts for placement: {required_hosts}", file=sys.stderr)
+        # print(f"Required hosts for placement: {required_hosts}", file=sys.stderr)  # Закомментировано
         
         # Сортируем VM по размеру и соотношению CPU/RAM
         vm_metrics = {}
@@ -609,12 +608,7 @@ class VMScheduler:
             else:
                 unplaced_vms.append(vm_id)
                 
-        print(f"Unplaced VMs after initial placement: {len(unplaced_vms)}", file=sys.stderr)
-        
-        # Стратегия размещения неразмещенных VM:
-        # 1. Рассчитываем целевое количество активных хостов
-        # 2. Предпочитаем размещать на уже активных хостах
-        # 3. Предпочитаем более крупные хосты для больших VM
+        # print(f"Unplaced VMs after initial placement: {len(unplaced_vms)}", file=sys.stderr)  # Закомментировано
         
         # Рассчитываем общий размер неразмещенных VM
         total_unplaced_size = sum(
@@ -622,7 +616,7 @@ class VMScheduler:
             for vm_id in unplaced_vms
         )
         
-        print(f"Total size of unplaced VMs: {total_unplaced_size}", file=sys.stderr)
+        # print(f"Total size of unplaced VMs: {total_unplaced_size}", file=sys.stderr)  # Закомментировано
         
         # Обновляем утилизацию хостов после первого размещения
         for host_id in self.hosts:
@@ -631,7 +625,7 @@ class VMScheduler:
         # Если у нас есть неразмещенные VM, попробуем сначала освободить место,
         # мигрируя существующие VM на другие хосты
         if unplaced_vms:  # Убираем ограничение на количество неразмещенных VM
-            print(f"Attempting to make room for {len(unplaced_vms)} unplaced VMs by migrating existing ones", file=sys.stderr)
+            # print(f"Attempting to make room for {len(unplaced_vms)} unplaced VMs by migrating existing ones", file=sys.stderr)  # Закомментировано
             
             # Группируем неразмещенные VM по размеру
             unplaced_by_size = sorted(
@@ -646,7 +640,7 @@ class VMScheduler:
             
             for vm_id, vm_size in unplaced_by_size:
                 if successful_emergency_migrations >= max_emergency_migrations:
-                    print(f"Reached maximum emergency migrations limit ({max_emergency_migrations})", file=sys.stderr)
+                    # print(f"Reached maximum emergency migrations limit ({max_emergency_migrations})", file=sys.stderr)  # Закомментировано
                     break
                     
                 # Получаем требования VM
@@ -687,7 +681,7 @@ class VMScheduler:
                             new_allocations[host_id] = []
                         new_allocations[host_id].append(vm_id)
                         found_place = True
-                        print(f"Placed unplaced VM {vm_id} on host {host_id} (no deficit)", file=sys.stderr)
+                        # print(f"Placed unplaced VM {vm_id} on host {host_id} (no deficit)", file=sys.stderr)  # Закомментировано
                         break
                     
                     # Если есть дефицит, ищем VM для миграции
@@ -740,14 +734,14 @@ class VMScheduler:
                             self.current_round_migrations.add(existing_vm_id)
                             successful_emergency_migrations += 1
                             
-                            print(f"Emergency migration: VM {existing_vm_id} from {host_id} to {new_host} to make room for {vm_id}", file=sys.stderr)
+                            # print(f"Emergency migration: VM {existing_vm_id} from {host_id} to {new_host} to make room for {vm_id}", file=sys.stderr)  # Закомментировано
                             
                             # Проверяем, хватит ли теперь места для неразмещенной VM
                             if self.can_host_vm(host_id, vm_id, self.calculate_host_capacity(host_id, new_allocations)["capacity"]):
                                 # Размещаем неразмещенную VM
                                 new_allocations[host_id].append(vm_id)
                                 found_place = True
-                                print(f"Placed unplaced VM {vm_id} on host {host_id} after emergency migration", file=sys.stderr)
+                                # print(f"Placed unplaced VM {vm_id} on host {host_id} after emergency migration", file=sys.stderr)  # Закомментировано
                                 break
                     
                     if found_place:
@@ -756,7 +750,7 @@ class VMScheduler:
                     # Если не удалось освободить место через миграцию одной VM, 
                     # попробуем каскадную миграцию нескольких VM
                     if not found_place and len(migratable_vms) >= 2:
-                        print(f"Attempting cascade migration for VM {vm_id} on host {host_id}", file=sys.stderr)
+                        # print(f"Attempting cascade migration for VM {vm_id} on host {host_id}", file=sys.stderr)  # Закомментировано
                         
                         # Пытаемся мигрировать несколько VM, чтобы освободить место
                         migrated_vms = []
@@ -794,48 +788,48 @@ class VMScheduler:
                                 total_freed_cpu += vm_cpu
                                 total_freed_ram += vm_ram
                                 
-                                print(f"Cascade migration: VM {existing_vm_id} from {host_id} to {new_host}", file=sys.stderr)
+                                # print(f"Cascade migration: VM {existing_vm_id} from {host_id} to {new_host}", file=sys.stderr)  # Закомментировано
                         
-                        # Проверяем, хватит ли теперь места для неразмещенной VM
-                        if self.can_host_vm(host_id, vm_id, self.calculate_host_capacity(host_id, new_allocations)["capacity"]):
-                            # Размещаем неразмещенную VM
-                            new_allocations[host_id].append(vm_id)
-                            found_place = True
-                            print(f"Placed unplaced VM {vm_id} on host {host_id} after cascade migration of {len(migrated_vms)} VMs", file=sys.stderr)
-                            break
-                        else:
-                            # Если все равно не хватает места, отменяем каскадные миграции
-                            print(f"Cascade migration failed for VM {vm_id}, reverting {len(migrated_vms)} migrations", file=sys.stderr)
+                    # Проверяем, хватит ли теперь места для неразмещенной VM
+                    if self.can_host_vm(host_id, vm_id, self.calculate_host_capacity(host_id, new_allocations)["capacity"]):
+                        # Размещаем неразмещенную VM
+                        new_allocations[host_id].append(vm_id)
+                        found_place = True
+                        # print(f"Placed unplaced VM {vm_id} on host {host_id} after cascade migration of {len(migrated_vms)} VMs", file=sys.stderr)  # Закомментировано
+                        break
+                    else:
+                        # Если все равно не хватает места, отменяем каскадные миграции
+                        # print(f"Cascade migration failed for VM {vm_id}, reverting {len(migrated_vms)} migrations", file=sys.stderr)  # Закомментировано
+                        
+                        # Отменяем миграции
+                        for migrated_vm_id in migrated_vms:
+                            # Находим текущий хост мигрированной VM
+                            current_host = None
+                            for h, vms in new_allocations.items():
+                                if migrated_vm_id in vms:
+                                    current_host = h
+                                    break
                             
-                            # Отменяем миграции
-                            for migrated_vm_id in migrated_vms:
-                                # Находим текущий хост мигрированной VM
-                                current_host = None
-                                for h, vms in new_allocations.items():
-                                    if migrated_vm_id in vms:
-                                        current_host = h
-                                        break
+                            if current_host:
+                                # Возвращаем VM на исходный хост
+                                new_allocations[current_host].remove(migrated_vm_id)
+                                new_allocations[host_id].append(migrated_vm_id)
                                 
-                                if current_host:
-                                    # Возвращаем VM на исходный хост
-                                    new_allocations[current_host].remove(migrated_vm_id)
-                                    new_allocations[host_id].append(migrated_vm_id)
-                                    
-                                    # Удаляем из списка миграций
-                                    self.current_round_migrations.remove(migrated_vm_id)
-                                    successful_emergency_migrations -= 1
-                
-                # Если удалось разместить VM, убираем ее из списка неразмещенных
-                if found_place:
-                    unplaced_vms.remove(vm_id)
+                                # Удаляем из списка миграций
+                                self.current_round_migrations.remove(migrated_vm_id)
+                                successful_emergency_migrations -= 1
             
-            # Обновляем утилизацию хостов после экстренных миграций
-            if successful_emergency_migrations > 0:
-                for host_id in self.hosts:
-                    hosts_utilization[host_id] = self.calculate_host_capacity(host_id, new_allocations)["max_utilization"]
-                print(f"Performed {successful_emergency_migrations} emergency migrations to make room for unplaced VMs", file=sys.stderr)
-                print(f"Remaining unplaced VMs after emergency migrations: {len(unplaced_vms)}", file=sys.stderr)
+            # Если удалось разместить VM, убираем ее из списка неразмещенных
+            if found_place:
+                unplaced_vms.remove(vm_id)
         
+        # Обновляем утилизацию хостов после экстренных миграций
+        if successful_emergency_migrations > 0:
+            for host_id in self.hosts:
+                hosts_utilization[host_id] = self.calculate_host_capacity(host_id, new_allocations)["max_utilization"]
+            # print(f"Performed {successful_emergency_migrations} emergency migrations to make room for unplaced VMs", file=sys.stderr)  # Закомментировано
+            # print(f"Remaining unplaced VMs after emergency migrations: {len(unplaced_vms)}", file=sys.stderr)  # Закомментировано
+    
         # Сортируем хосты по потенциалу для размещения (предпочитаем активные хосты с низкой утилизацией)
         placement_hosts = []
         for host_id in self.hosts:
@@ -870,7 +864,7 @@ class VMScheduler:
         # Сортируем хосты по приоритету размещения (по убыванию)
         placement_hosts.sort(key=lambda x: x[1], reverse=True)
         
-        print(f"Placement hosts (priority, utilization, size): {placement_hosts}", file=sys.stderr)
+        # print(f"Placement hosts (priority, utilization, size): {placement_hosts}", file=sys.stderr)  # Закомментировано
         
         # Пытаемся размещать VM одну за другой
         placement_failures = []
@@ -928,11 +922,11 @@ class VMScheduler:
                 # Обновляем утилизацию хоста
                 hosts_utilization[best_host] = self.calculate_host_capacity(best_host, new_allocations)["max_utilization"]
                 
-                print(f"Placed VM {vm_id} on host {best_host} (new utilization: {hosts_utilization[best_host]:.2f})", file=sys.stderr)
+                # print(f"Placed VM {vm_id} on host {best_host} (new utilization: {hosts_utilization[best_host]:.2f})", file=sys.stderr)  # Закомментировано
             else:
                 # Не удалось разместить VM
                 placement_failures.append(vm_id)
-                print(f"Failed to place VM {vm_id}", file=sys.stderr)
+                # print(f"Failed to place VM {vm_id}", file=sys.stderr)  # Закомментировано
         
         # Записываем неразмещенные VM
         self.allocation_failures = placement_failures
@@ -958,8 +952,8 @@ class VMScheduler:
         # Выводим статистику по утилизации
         active_hosts = sum(1 for host_id in self.hosts if new_allocations.get(host_id))
         avg_utilization = sum(host_utilization.values()) / len(self.hosts) if self.hosts else 0
-        print(f"Placement complete. Active hosts: {active_hosts}/{len(self.hosts)}, Avg utilization: {avg_utilization:.2f}", file=sys.stderr)
-        print(f"Host scores: {self.host_scores}", file=sys.stderr)
+        # print(f"Placement complete. Active hosts: {active_hosts}/{len(self.hosts)}, Avg utilization: {avg_utilization:.2f}", file=sys.stderr)  # Закомментировано
+        # print(f"Host scores: {self.host_scores}", file=sys.stderr)  # Закомментировано
         
         return new_allocations
 
@@ -978,15 +972,16 @@ class VMScheduler:
             if utilization > 0 and utilization < CONSOLIDATION_THRESHOLD:
                 if host_id not in self.hosts_to_shutdown:
                     self.hosts_to_shutdown.add(host_id)
-                    print(f"Adding host {host_id} to shutdown list due to low utilization ({utilization:.2f})", file=sys.stderr)
+                    # print(f"Adding host {host_id} to shutdown list due to low utilization ({utilization:.2f})", file=sys.stderr)  # Закомментировано
         
-        print(f"Starting consolidation. Hosts to shutdown: {self.hosts_to_shutdown}", file=sys.stderr)
-        print(f"Current utilization: {hosts_utilization}", file=sys.stderr)
+        # print(f"Starting consolidation. Hosts to shutdown: {self.hosts_to_shutdown}", file=sys.stderr)  # Закомментировано
+        # print(f"Current utilization: {hosts_utilization}", file=sys.stderr)  # Закомментировано
         
         # Выводим статистику по хостам с нулевой утилизацией
         zero_counts = {host_id: count for host_id, count in self.host_zero_utilization_count.items() if count > 0}
         if zero_counts:
-            print(f"Hosts with zero utilization counts: {zero_counts}", file=sys.stderr)
+            # print(f"Hosts with zero utilization counts: {zero_counts}", file=sys.stderr)  # Закомментировано
+            pass
         
         # Сортируем хосты для выключения по приоритету
         hosts_to_empty = []
@@ -1018,21 +1013,21 @@ class VMScheduler:
         ))
         
         # Выводим информацию о сортировке
-        print(f"Hosts to empty (sorted by priority): {hosts_to_empty}", file=sys.stderr)
+        # print(f"Hosts to empty (sorted by priority): {hosts_to_empty}", file=sys.stderr)  # Закомментировано
         
         # Оцениваем необходимое количество хостов
         required_hosts = self.estimate_required_hosts()
         active_hosts = sum(1 for util in hosts_utilization.values() if util > 0)
         
-        print(f"Required hosts: {required_hosts}, Active hosts: {active_hosts}", file=sys.stderr)
+        # print(f"Required hosts: {required_hosts}, Active hosts: {active_hosts}", file=sys.stderr)  # Закомментировано
         
         # Пытаемся переместить VM с хостов, которые планируется выключить
         for host_id, vm_count, utilization, bonus_priority in hosts_to_empty:
-            print(f"Trying to consolidate VMs from host {host_id} ({vm_count} VMs, {utilization:.2f} util, bonus priority: {bonus_priority})", file=sys.stderr)
+            # print(f"Trying to consolidate VMs from host {host_id} ({vm_count} VMs, {utilization:.2f} util, bonus priority: {bonus_priority})", file=sys.stderr)  # Закомментировано
             
             # Если достигли минимального количества хостов, останавливаем консолидацию
             if active_hosts <= required_hosts:
-                print(f"Reached minimum required hosts ({required_hosts})", file=sys.stderr)
+                # print(f"Reached minimum required hosts ({required_hosts})", file=sys.stderr)  # Закомментировано
                 break
             
             # Сортируем VM по размеру и приоритету для миграции
@@ -1044,13 +1039,13 @@ class VMScheduler:
                 )
             )
             
-            print(f"VMs on host {host_id} for migration: {host_vms}", file=sys.stderr)
+            # print(f"VMs on host {host_id} for migration: {host_vms}", file=sys.stderr)  # Закомментировано
             
             successful_migrations = 0
             for vm_id in host_vms:
                 # Если достигли лимита миграций, останавливаем консолидацию
                 if len(migrations) >= MAX_MIGRATIONS:
-                    print(f"Reached maximum migrations limit ({MAX_MIGRATIONS})", file=sys.stderr)
+                    # print(f"Reached maximum migrations limit ({MAX_MIGRATIONS})", file=sys.stderr)  # Закомментировано
                     break
                 
                 # Ищем лучший хост для VM, исключая хосты для выключения
@@ -1126,26 +1121,26 @@ class VMScheduler:
                     hosts_utilization[best_host] = self.calculate_host_capacity(best_host, allocations)["max_utilization"]
                     
                     successful_migrations += 1
-                    print(f"Consolidation: Migrated VM {vm_id} from {host_id} to {best_host}", file=sys.stderr)
+                    # print(f"Consolidation: Migrated VM {vm_id} from {host_id} to {best_host}", file=sys.stderr)  # Закомментировано
                     
                     # Если освободили хост, уменьшаем счетчик активных хостов
                     if not allocations[host_id]:
                         active_hosts -= 1
-                        print(f"Host {host_id} is now empty. Active hosts: {active_hosts}", file=sys.stderr)
+                        # print(f"Host {host_id} is now empty. Active hosts: {active_hosts}", file=sys.stderr)  # Закомментировано
                     
                     # Ограничиваем количество миграций
                     if len(migrations) >= MAX_MIGRATIONS:
-                        print(f"Reached maximum migrations limit ({MAX_MIGRATIONS})", file=sys.stderr)
+                        # print(f"Reached maximum migrations limit ({MAX_MIGRATIONS})", file=sys.stderr)  # Закомментировано
                         return allocations, migrations
             
             # Если не удалось переместить ни одну VM с хоста, убираем его из списка на выключение
             if successful_migrations == 0:
                 self.hosts_to_shutdown.remove(host_id)
-                print(f"Could not migrate any VMs from host {host_id}, removing from shutdown list", file=sys.stderr)
+                # print(f"Could not migrate any VMs from host {host_id}, removing from shutdown list", file=sys.stderr)  # Закомментировано
         
         # Выводим окончательную статистику
         empty_hosts = [host_id for host_id in self.hosts if not allocations.get(host_id, [])]
-        print(f"After consolidation: {len(empty_hosts)} empty hosts, {len(migrations)} migrations", file=sys.stderr)
+        # print(f"After consolidation: {len(empty_hosts)} empty hosts, {len(migrations)} migrations", file=sys.stderr)  # Закомментировано
         
         return allocations, migrations
 
@@ -1195,7 +1190,7 @@ class VMScheduler:
             
             return migrations
             
-        print(f"After consolidation: {len(migrations)} migrations, {remaining_migrations} remaining", file=sys.stderr)
+        # print(f"After consolidation: {len(migrations)} migrations, {remaining_migrations} remaining", file=sys.stderr)  # Закомментировано
         
         # Быстрая проверка необходимости миграций
         potential_migrations = []
@@ -1264,7 +1259,7 @@ class VMScheduler:
                 })
                 self.current_round_migrations.add(vm_id)
                 successful_migrations += 1
-                print(f"Migration: VM {vm_id} from {old_host} to {new_host} (benefit: {benefit})", file=sys.stderr)
+                # print(f"Migration: VM {vm_id} from {old_host} to {new_host} (benefit: {benefit})", file=sys.stderr)  # Закомментировано
             else:
                 # Отменяем миграцию, если выгода недостаточна
                 if vm_id in new_allocations[new_host]:
@@ -1273,7 +1268,7 @@ class VMScheduler:
                     if vm_id not in new_allocations[old_host]:
                         new_allocations[old_host].append(vm_id)
                 cancelled_migrations += 1
-                print(f"Cancelled migration of VM {vm_id} (benefit: {benefit} < {MIN_BENEFIT_FOR_MIGRATION})", file=sys.stderr)
+                # print(f"Cancelled migration of VM {vm_id} (benefit: {benefit} < {MIN_BENEFIT_FOR_MIGRATION})", file=sys.stderr)  # Закомментировано
         
         # Обновляем статистику
         self.performance_stats["successful_migrations"].append(successful_migrations)
@@ -1297,7 +1292,7 @@ class VMScheduler:
                 # Бонус начисляется после 5+ раундов простоя
                 if zero_count >= BONUS_THRESHOLD:
                     score += 8  # Бонус за выключенный хост
-                    print(f"Host {host_id} gets bonus for being off for {zero_count} rounds", file=sys.stderr)
+                    # print(f"Host {host_id} gets bonus for being off for {zero_count} rounds", file=sys.stderr)  # Закомментировано
                 # Частичный бонус для хостов, близких к получению полного бонуса
                 elif zero_count >= BONUS_THRESHOLD - 1:
                     score += 4  # Частичный бонус для стимулирования сохранения хоста выключенным
@@ -1324,8 +1319,8 @@ class VMScheduler:
                          and self.host_zero_utilization_count.get(host_id, 0) >= BONUS_THRESHOLD
                          and host_id in self.hosts_with_previous_vms)
         
-        print(f"Host scores: {host_scores}", file=sys.stderr)
-        print(f"Active hosts: {active_hosts}/{len(self.hosts)}, Bonus hosts: {bonus_hosts}", file=sys.stderr)
+        # print(f"Host scores: {host_scores}", file=sys.stderr)  # Закомментировано
+        # print(f"Active hosts: {active_hosts}/{len(self.hosts)}, Bonus hosts: {bonus_hosts}", file=sys.stderr)  # Закомментировано
         
         total_score = sum(host_scores.values())
         
@@ -1339,7 +1334,7 @@ class VMScheduler:
             allocation_failure_penalty = 5 * len(self.hosts) * len(self.allocation_failures)
             total_score -= allocation_failure_penalty
             
-        print(f"Total score: {total_score} (base: {sum(host_scores.values())}, migration penalty: {migration_penalty}, allocation failure penalty: {allocation_failure_penalty})", file=sys.stderr)
+        # print(f"Total score: {total_score} (base: {sum(host_scores.values())}, migration penalty: {migration_penalty}, allocation failure penalty: {allocation_failure_penalty})", file=sys.stderr)  # Закомментировано
             
         return total_score
 
