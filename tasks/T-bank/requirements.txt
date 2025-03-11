@@ -1,3 +1,27 @@
-git+https://github.com/huggingface/transformers
-qwen-vl-utils
-openai
+# OpenAI package for OpenRouter API integration
+openai>=1.0.0
+
+# Pillow for image manipulation and optimization
+Pillow>=9.0.0
+
+# Requests for HTTP requests
+requests>=2.28.0
+
+# Base Python dependencies
+numpy>=1.20.0
+typing-extensions>=4.0.0
+
+# Optional: For the original Qwen2.5-VL model
+# transformers>=4.37.0
+# torch>=2.0.0
+
+# Logging and progress tracking
+tqdm>=4.62.3
+loguru>=0.6.0
+
+# Additional dependencies
+python-dotenv>=0.20.0
+pathlib>=1.0.1
+
+# Unicode support for proper handling of Cyrillic and other non-Latin characters
+chardet>=4.0.0
