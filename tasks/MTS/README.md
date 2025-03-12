@@ -89,7 +89,7 @@ docker buildx build --platform linux/amd64,linux/arm64/v8 -t mws-vm-scheduler --
 #### Для Windows через cmd.exe (рекомендуется):
 
 ```cmd
-type test_input.json | docker run --cpus 3 --init --interactive --memory 2GB --network none --no-healthcheck --read-only --tmpfs /tmp:rw,noexec,nosuid --ulimit cpu=60 mws-vm-scheduler
+type tests/1_test_from_mts.txt | docker run --cpus 3 --init --interactive --memory 2GB --network none --no-healthcheck --read-only --tmpfs /tmp:rw,noexec,nosuid --ulimit cpu=60 mws-vm-scheduler
 ```
 
 #### Для Windows через PowerShell:
