@@ -227,7 +227,8 @@ python main.py --duration-weight 7 --resource-weight 3 --cost-weight 1
   "totalCost": 8400.0
 }
 ```
-![sber1](https://github.com/user-attachments/assets/d4986eef-0d0b-450b-9805-e0328b1ca2c2)
+![image](https://github.com/user-attachments/assets/2196403b-db18-4be9-a16d-93b692c5d243)
+
 
 
 ## 📚 API Справочник
