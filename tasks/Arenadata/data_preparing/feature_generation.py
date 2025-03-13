@@ -25,6 +25,7 @@ def process_client_data(df):
             return 0
         return (row['UpTx'] + row['DownTx']) / row['Duration']
     
+    print("Computing AvgPackets")
     df['AvgPackets'] = df.apply(compute_avg_packets, axis=1)
 
     def compute_avg_up(row):
@@ -37,7 +38,9 @@ def process_client_data(df):
             return 0
         return row['DownTx'] / row['Duration']
     
+    print("Computing AvgUp")
     df['AvgUp'] = df.apply(compute_avg_up, axis=1)
+    print("Computing AvgDown")
     df['AvgDown'] = df.apply(compute_avg_down, axis=1)
 
     df = df.drop(columns=['Attrs', 'TransmitUnits', 'Delimiter'])
@@ -65,16 +68,17 @@ def process_session_columns(df):
        - Если EndSessionUTC == 0 (EndSession NaN), берёт исходный Duration.
     3. Удаляет оригинальные колонки StartSession, EndSession, TZ, DateFormat.
     """
-
+    print("Computing StartSessionUTC")
     df['StartSessionUTC'] = df.apply(
         lambda row: convert_to_utc(row['StartSession'], row['DateFormat'], row['TZ']), axis=1
     )
+    print("Computing EndSessionUTC")
     df['EndSessionUTC'] = df.apply(
         lambda row: convert_to_utc(row['EndSession'], row['DateFormat'], row['TZ'])
         if pd.notna(row['EndSession']) else 0,
         axis=1
     )
-
+    print("Computing SessionDuration")
     # Функция для вычисления фактической длительности сессии
     def compute_session_duration(row):
         if row['EndSessionUTC'] == 0 or row['StartSessionUTC'] is None:
@@ -108,6 +112,7 @@ def add_endpoint_column(df):
         # Преобразуем итоговую дату в Unix timestamp (секунды с 1970-01-01)
         return int(end_dt.timestamp())
     
+    print("Computing EndPoint")
     # Применяем функцию построчно
     df['EndPoint'] = df.apply(calc_endpoint, axis=1)
     df = df.drop(columns=['EndSessionUTC', 'DateFormat'])
