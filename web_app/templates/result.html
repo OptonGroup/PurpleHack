@@ -4,19 +4,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.css" rel="stylesheet">
 <style>
-    #calendar {
-        height: 600px;
-        margin: 20px 0;
-        background-color: white;
-    }
-    .fc-event {
-        cursor: pointer;
-    }
-    .fc-daygrid-event {
-        white-space: normal;
-    }
     .loading-container {
         text-align: center;
         padding: 40px;
@@ -32,7 +20,12 @@
     }
     .loading-progress {
         margin-top: 20px;
-        height: 4px;
+        height: 8px;
+    }
+    .progress-percentage {
+        margin-top: 10px;
+        font-weight: bold;
+        color: #0d6efd;
     }
     .loading-tips {
         margin-top: 20px;
@@ -42,10 +35,124 @@
         font-size: 0.9em;
         color: #666;
     }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    .pulse-animation {
+        animation: pulse 1.5s infinite;
+    }
+    .debug-console {
+        margin-top: 15px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f5f5f5;
+        font-family: monospace;
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: 12px;
+    }
+    .timeline-container {
+        margin-top: 20px;
+        overflow-x: auto;
+    }
+    .timeline-wrapper {
+        min-width: 800px;
+        position: relative;
+    }
+    .timeline-header {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+    .timeline-label {
+        width: 150px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .timeline-dates {
+        flex-grow: 1;
+        display: flex;
+    }
+    .day-label {
+        flex-grow: 1;
+        text-align: center;
+        font-size: 0.8em;
+        color: #666;
+    }
+    .timeline-row {
+        display: flex;
+        margin-bottom: 8px;
+        height: 30px;
+        align-items: center;
+    }
+    .resource-label {
+        width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .timeline-bars {
+        flex-grow: 1;
+        position: relative;
+        height: 100%;
+        background-color: #f9f9f9;
+    }
+    .timeline-bar {
+        position: absolute;
+        height: 100%;
+        top: 0;
+        border-radius: 4px;
+        color: white;
+        text-align: center;
+        font-size: 0.8em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+    .result-summary {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    .summary-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .summary-stat {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .summary-stat:last-child {
+        border-bottom: none;
+    }
+    .summary-label {
+        color: #666;
+    }
+    .summary-value {
+        font-weight: bold;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Видимый ID задачи для отладки - скрыт в продакшн -->
+<div id="job-id" data-job-id="{{ job_id }}" data-status="{{ status.status }}"></div>
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
@@ -63,17 +170,19 @@
                 </div>
             </div>
             <div class="card-body">
-                {% if status.status == "pending" %}
-                <div class="loading-container">
-                    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                {% if status.status == "pending" or status.status == "running" %}
+                <div class="loading-container" id="loading-container">
+                    <div class="spinner-border text-primary pulse-animation" style="width: 3rem; height: 3rem;" role="status">
                         <span class="visually-hidden">Загрузка...</span>
                     </div>
-                    <div class="loading-text">
+                    <div class="loading-text" id="loading-text">
                         Идет оптимизация расписания...
                     </div>
                     <div class="progress loading-progress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+                        <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                     </div>
+                    <div class="progress-percentage" id="progress-percentage">0%</div>
+                    <div id="current-action" class="mt-2 text-primary"></div>
                     <div class="loading-tips">
                         <p><strong>Что происходит:</strong></p>
                         <ul class="text-start">
@@ -84,13 +193,41 @@
                         </ul>
                         <p class="mb-0"><small>Это может занять несколько минут. Пожалуйста, не закрывайте страницу.</small></p>
                     </div>
+                    <!-- Отладочная консоль - только для разработки -->
+                    <div id="debug-console" class="debug-console">
+                        <div>Initializing loader...</div>
+                    </div>
                 </div>
                 {% elif status.status == "completed" and result %}
+                
+                <!-- Сводка результатов -->
+                <div class="result-summary">
+                    <div class="summary-header">
+                        <i class="bi bi-info-circle-fill me-2"></i> Сводка результатов оптимизации
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-label">Общая длительность проекта:</div>
+                        <div class="summary-value">{{ result.totalDuration }} дней</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-label">Использование ресурсов:</div>
+                        <div class="summary-value">{{ result.resourceUtilization }}%</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-label">Стоимость проекта:</div>
+                        <div class="summary-value">{{ result.totalCost }}</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-label">Количество задач:</div>
+                        <div class="summary-value">{{ result.tasks|length }}</div>
+                    </div>
+                </div>
+                
                 <div class="mt-4">
                     <ul class="nav nav-tabs" id="resultTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="calendar-tab" data-bs-toggle="tab" data-bs-target="#calendar-view" type="button" role="tab">
-                                <i class="bi bi-calendar3"></i> Календарь
+                            <button class="nav-link active" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline-view" type="button" role="tab">
+                                <i class="bi bi-bar-chart-steps"></i> Временная шкала
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -101,9 +238,12 @@
                     </ul>
 
                     <div class="tab-content mt-3" id="resultTabsContent">
-                        <div class="tab-pane fade show active" id="calendar-view" role="tabpanel">
-                            <div id="calendar"></div>
+                        <!-- Временная шкала -->
+                        <div class="tab-pane fade show active" id="timeline-view" role="tabpanel">
+                            <div id="timeline" class="timeline-container"></div>
                         </div>
+                        
+                        <!-- Таблица -->
                         <div class="tab-pane fade" id="table-view" role="tabpanel">
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover">
@@ -146,9 +286,9 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/locales/ru.js"></script>
+<script src="/static/js/loader.js"></script>
 <script>
+    // Устанавливаем функцию для генерации цвета на основе resourceId
     function getTaskColor(resourceId) {
         const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
@@ -161,72 +301,134 @@
         }
         return colors[Math.abs(hash) % colors.length];
     }
+    
+    // Функция для создания временной шкалы
+    function createTimeline(tasks) {
+        const timelineContainer = document.getElementById('timeline');
+        if (!timelineContainer || !tasks || !tasks.length) return;
+        
+        // Находим минимальную и максимальную даты
+        let minDate = new Date(tasks[0].startDate || tasks[0].start_date);
+        let maxDate = new Date(tasks[0].endDate || tasks[0].end_date);
+        
+        tasks.forEach(task => {
+            const startDate = new Date(task.startDate || task.start_date);
+            const endDate = new Date(task.endDate || task.end_date);
+            
+            if (startDate < minDate) minDate = startDate;
+            if (endDate > maxDate) maxDate = endDate;
+        });
+        
+        // Добавляем буфер в начале и конце
+        minDate.setDate(minDate.getDate() - 1);
+        maxDate.setDate(maxDate.getDate() + 1);
+        
+        // Вычисляем общую продолжительность в днях
+        const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24));
+        
+        // Группируем задачи по ресурсам
+        const resourceTasks = {};
+        tasks.forEach(task => {
+            const resourceId = task.assignedResourceId || task.resource || 'Не назначен';
+            if (!resourceTasks[resourceId]) {
+                resourceTasks[resourceId] = [];
+            }
+            resourceTasks[resourceId].push(task);
+        });
+        
+        // Создаем обертку временной шкалы
+        const timelineWrapper = document.createElement('div');
+        timelineWrapper.className = 'timeline-wrapper';
+        timelineContainer.appendChild(timelineWrapper);
+        
+        // Создаем заголовок временной шкалы с датами
+        const timelineHeader = document.createElement('div');
+        timelineHeader.className = 'timeline-header';
+        
+        // Добавляем метку для ресурсов
+        const resourceHeaderLabel = document.createElement('div');
+        resourceHeaderLabel.className = 'timeline-label';
+        resourceHeaderLabel.textContent = 'Ресурс';
+        timelineHeader.appendChild(resourceHeaderLabel);
+        
+        // Создаем контейнер для меток дат
+        const timelineDates = document.createElement('div');
+        timelineDates.className = 'timeline-dates';
+        
+        // Добавляем метки для каждого дня
+        const dayWidth = 100 / totalDays; // в процентах
+        for (let i = 0; i < totalDays; i++) {
+            const date = new Date(minDate);
+            date.setDate(date.getDate() + i);
+            
+            const dayLabel = document.createElement('div');
+            dayLabel.className = 'day-label';
+            dayLabel.style.width = `${dayWidth}%`;
+            dayLabel.textContent = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+            timelineDates.appendChild(dayLabel);
+        }
+        
+        timelineHeader.appendChild(timelineDates);
+        timelineWrapper.appendChild(timelineHeader);
+        
+        // Создаем строки для каждого ресурса
+        Object.keys(resourceTasks).forEach(resourceId => {
+            const timelineRow = document.createElement('div');
+            timelineRow.className = 'timeline-row';
+            
+            // Метка ресурса
+            const resourceLabel = document.createElement('div');
+            resourceLabel.className = 'resource-label';
+            resourceLabel.textContent = resourceId;
+            timelineRow.appendChild(resourceLabel);
+            
+            // Контейнер для полосок задач
+            const timelineBars = document.createElement('div');
+            timelineBars.className = 'timeline-bars';
+            
+            // Добавляем полоски для каждой задачи этого ресурса
+            resourceTasks[resourceId].forEach(task => {
+                const startDate = new Date(task.startDate || task.start_date);
+                const endDate = new Date(task.endDate || task.end_date);
+                
+                // Вычисляем позицию и ширину полоски
+                const startDays = Math.floor((startDate - minDate) / (1000 * 60 * 60 * 24));
+                const durationDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                
+                const left = (startDays / totalDays) * 100;
+                const width = (durationDays / totalDays) * 100;
+                
+                const timelineBar = document.createElement('div');
+                timelineBar.className = 'timeline-bar';
+                timelineBar.style.left = `${left}%`;
+                timelineBar.style.width = `${width}%`;
+                timelineBar.style.backgroundColor = getTaskColor(resourceId);
+                timelineBar.textContent = task.id;
+                timelineBar.dataset.taskId = task.id;
+                
+                // Добавляем всплывающую подсказку
+                timelineBar.title = `Задача: ${task.id}\nНачало: ${startDate.toLocaleDateString()}\nОкончание: ${endDate.toLocaleDateString()}`;
+                
+                // Добавляем обработчик щелчка
+                timelineBar.addEventListener('click', function() {
+                    alert(`Задача: ${task.id}\nРесурс: ${resourceId}\nНачало: ${startDate.toLocaleDateString()}\nОкончание: ${endDate.toLocaleDateString()}`);
+                });
+                
+                timelineBars.appendChild(timelineBar);
+            });
+            
+            timelineRow.appendChild(timelineBars);
+            timelineWrapper.appendChild(timelineRow);
+        });
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
         const status = {{ status|tojson|safe }};
         const result = {{ result|default({})|tojson|safe }};
         
-        if (calendarEl && status && status.status === "completed" && result && result.tasks) {
-            const tasks = result.tasks;
-            if (Array.isArray(tasks) && tasks.length > 0) {
-                const events = tasks.map(task => {
-                    const resourceId = task.assignedResourceId || task.resource || 'Не назначен';
-                    const color = getTaskColor(resourceId);
-                    return {
-                        id: task.id,
-                        title: `Задача ${task.id} (${resourceId})`,
-                        start: task.startDate || task.start_date,
-                        end: task.endDate || task.end_date,
-                        backgroundColor: color,
-                        borderColor: color,
-                        textColor: '#000',
-                        allDay: true
-                    };
-                });
-
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    locale: 'ru',
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth'
-                    },
-                    events: events,
-                    displayEventTime: false,
-                    eventDisplay: 'block',
-                    eventClick: function(info) {
-                        const task = tasks.find(t => t.id === info.event.id);
-                        if (task) {
-                            alert(
-                                `Задача: ${task.id}\n` +
-                                `Ресурс: ${task.assignedResourceId || task.resource || 'Не назначен'}\n` +
-                                `Начало: ${task.startDate || task.start_date}\n` +
-                                `Окончание: ${task.endDate || task.end_date}`
-                            );
-                        }
-                    }
-                });
-
-                calendar.render();
-            } else {
-                calendarEl.innerHTML = '<div class="alert alert-info">Нет задач для отображения</div>';
-            }
-        }
-
-        if (status && status.status === "pending") {
-            function updateStatus() {
-                fetch('/api/status/{{ job_id }}')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status !== "pending") {
-                            window.location.reload();
-                        }
-                    })
-                    .catch(error => console.error('Ошибка при проверке статуса:', error));
-            }
-            setInterval(updateStatus, 5000);
+        // Создание временной шкалы
+        if (status && status.status === "completed" && result && result.tasks) {
+            createTimeline(result.tasks);
         }
     });
 </script>

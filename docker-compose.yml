@@ -7,6 +7,8 @@ services:
     restart: always
     volumes:
       - ./:/app
+      - model_data:/app/web_app/models
+      - temp_data:/app/web_app/temp
     ports:
       - "8000:8000"
     environment:
@@ -14,4 +16,20 @@ services:
       - WORKERS=2
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     command: gunicorn web_app.app:app --workers ${WORKERS:-2} --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --timeout 120 --reload
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  model_data:
+  temp_data:

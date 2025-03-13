@@ -390,6 +390,24 @@ def get_optimization_status(job_id: str) -> Dict[str, Any]:
     # Получаем задачу
     task = optimization_tasks[job_id]
     
+    # Вычисляем дополнительные поля
+    elapsed_time = 0
+    estimated_time_remaining = None
+    if task["start_time"]:
+        current_time = time.time()
+        elapsed_time = current_time - task["start_time"]
+        
+        # Вычисляем примерное оставшееся время на основе прогресса
+        # Только если прогресс больше 0 и меньше 1
+        if 0 < task["progress"] < 1:
+            estimated_time_remaining = (elapsed_time / task["progress"]) * (1 - task["progress"])
+    
+    # Форматируем времена
+    elapsed_time_str = format_time_duration(elapsed_time) if elapsed_time else None
+    estimated_time_remaining_str = format_time_duration(estimated_time_remaining) if estimated_time_remaining is not None else None
+    created_at = datetime.fromtimestamp(task["start_time"]).strftime("%Y-%m-%d %H:%M:%S") if task["start_time"] else None
+    completed_at = datetime.fromtimestamp(task["end_time"]).strftime("%Y-%m-%d %H:%M:%S") if task["end_time"] else None
+    
     # Группируем параметры в подсловарь params
     result = {
         "id": task["id"],
@@ -401,6 +419,10 @@ def get_optimization_status(job_id: str) -> Dict[str, Any]:
         "output_file": task["output_file"],
         "result": task["result"],
         "error": task["error"],
+        "elapsed_time": elapsed_time_str,
+        "estimated_time_remaining": estimated_time_remaining_str,
+        "created_at": created_at,
+        "completed_at": completed_at,
         "params": {
             "duration_weight": task["duration_weight"],
             "resource_weight": task["resource_weight"],
@@ -419,14 +441,30 @@ def get_optimization_status(job_id: str) -> Dict[str, Any]:
         }
     }
     
-    # Вычисляем дополнительные поля
-    if task["start_time"]:
-        result["created_at"] = datetime.fromtimestamp(task["start_time"]).strftime("%Y-%m-%d %H:%M:%S")
-    
-    if task["end_time"]:
-        result["end_time"] = datetime.fromtimestamp(task["end_time"]).strftime("%Y-%m-%d %H:%M:%S")
-    
     return result
+
+def format_time_duration(seconds: Optional[float]) -> Optional[str]:
+    """
+    Форматирует время в секундах в строку формата "ЧЧ:ММ:СС"
+    
+    Args:
+        seconds: Время в секундах
+        
+    Returns:
+        Строка с отформатированным временем или None, если seconds=None
+    """
+    if seconds is None:
+        return None
+    
+    hours, remainder = divmod(int(seconds), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    
+    if hours > 0:
+        return f"{hours}ч {minutes}м {seconds}с"
+    elif minutes > 0:
+        return f"{minutes}м {seconds}с"
+    else:
+        return f"{seconds}с"
 
 def get_all_optimization_results() -> List[Dict[str, Any]]:
     """

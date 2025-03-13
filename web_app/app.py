@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime, date
 
 # Импортируем API оптимизатора
-from optimizer_api import (
+from .optimizer_api import (
     validate_input_json, 
     optimize_plan,
     get_optimization_status,
