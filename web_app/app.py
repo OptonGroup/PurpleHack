@@ -9,16 +9,20 @@ import os
 import json
 import logging
 import uuid
+import requests
+import aiohttp
 from typing import Dict, Any, List, Optional, Union
 from fastapi import FastAPI, Request, Form, UploadFile, File, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel, Field
+from datetime import datetime, date
 
 # Импортируем API оптимизатора
-from web_app.optimizer_api import (
+from optimizer_api import (
     validate_input_json, 
     optimize_plan,
     get_optimization_status,
@@ -53,6 +57,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Добавляем middleware для сессий
+app.add_middleware(SessionMiddleware, secret_key="your-secret-key")
+
 # Добавляем CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +72,12 @@ app.add_middleware(
 # Монтируем статические файлы и шаблоны
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
+
+# Настраиваем Jinja2 для корректной работы с русскими символами
+def jinja2_json_filter(obj, **kwargs):
+    return json_dumps(obj, indent=2)
+
+templates.env.filters['tojson'] = jinja2_json_filter
 
 # Модели данных
 class OptimizationRequest(BaseModel):
@@ -92,6 +105,20 @@ class ValidationResponse(BaseModel):
     is_valid: bool = Field(..., description="Результат валидации")
     errors: List[str] = Field([], description="Список ошибок")
     warnings: List[str] = Field([], description="Список предупреждений")
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (datetime, date)):
+            return obj.isoformat()
+        return super().default(obj)
+
+def json_dumps(obj, **kwargs):
+    """Кастомная функция для сериализации JSON с поддержкой русских символов"""
+    return json.dumps(obj, ensure_ascii=False, cls=JSONEncoder, **kwargs)
+
+def json_loads(text, **kwargs):
+    """Кастомная функция для десериализации JSON с поддержкой русских символов"""
+    return json.loads(text, **kwargs)
 
 # Маршруты для веб-интерфейса
 @app.get("/", response_class=HTMLResponse)
@@ -350,6 +377,241 @@ async def upload_file(
     
     # Перенаправляем на страницу статуса
     return RedirectResponse(url=f"/result/{job_id}", status_code=303)
+
+# Маршруты для работы с сервером Sbertech
+@app.get("/server-load", response_class=HTMLResponse)
+async def server_load_page(request: Request):
+    """
+    Страница для загрузки плана с сервера Sbertech
+    """
+    return templates.TemplateResponse(
+        "server_load.html",
+        {"request": request}
+    )
+
+@app.post("/server-load", response_class=HTMLResponse)
+async def load_from_server(
+    request: Request,
+    id_1: str = Form(...),
+    id_2: str = Form(...),
+    bearer: str = Form(...)
+):
+    """
+    Загрузка плана с сервера Sbertech
+    """
+    try:
+        # Формируем URL для запроса
+        base_url = "https://saas.works.sbertech.ru/gantt/rest/srvc/v1/accountingObjects"
+        url = f"{base_url}/{id_1}/plans/{id_2}"
+        
+        logger.info(f"Отправка запроса на URL: {url}")
+        
+        # Формируем заголовки
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Dspc-Tenant": "SBT-TNT",
+            "Authorization": f"Bearer {bearer}",
+            "User-Agent": "Mozilla/5.0"
+        }
+        
+        logger.info("Заголовки запроса (без Authorization):", 
+                   {k: v for k, v in headers.items() if k != "Authorization"})
+        
+        # Выполняем запрос к серверу
+        async with aiohttp.ClientSession(json_serialize=json_dumps) as session:
+            async with session.get(url, headers=headers) as response:
+                logger.info(f"Получен ответ с кодом: {response.status}")
+                
+                if response.status == 200:
+                    text = await response.text()
+                    plan_data = json_loads(text)
+                    logger.info("План успешно загружен")
+                    
+                    # Сохраняем план в сессии
+                    request.session["plan_data"] = plan_data
+                    
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "plan_data": plan_data,
+                            "success": "План успешно загружен"
+                        }
+                    )
+                elif response.status == 401:
+                    error_text = await response.text(encoding='utf-8')
+                    logger.error(f"Ошибка авторизации: {error_text}")
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "error": "Ошибка авторизации. Пожалуйста, проверьте правильность Bearer токена."
+                        }
+                    )
+                elif response.status == 404:
+                    error_text = await response.text()
+                    logger.error(f"План не найден: {error_text}")
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "error": f"План не найден. Проверьте правильность ID: {id_1}/{id_2}"
+                        }
+                    )
+                else:
+                    error_text = await response.text()
+                    logger.error(f"Ошибка при загрузке плана: {error_text}")
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "error": f"Ошибка при загрузке плана (код {response.status}): {error_text}"
+                        }
+                    )
+    except aiohttp.ClientError as e:
+        logger.error(f"Ошибка сети при выполнении запроса: {str(e)}")
+        return templates.TemplateResponse(
+            "server_load.html",
+            {
+                "request": request,
+                "error": f"Ошибка сети при выполнении запроса: {str(e)}"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка: {str(e)}")
+        return templates.TemplateResponse(
+            "server_load.html",
+            {
+                "request": request,
+                "error": f"Неожиданная ошибка: {str(e)}"
+            }
+        )
+
+@app.post("/optimize-server-plan")
+async def optimize_server_plan(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    plan_data: str = Form(...)
+):
+    """
+    Оптимизация плана, загруженного с сервера
+    """
+    try:
+        # Преобразуем строку JSON обратно в словарь
+        data = json.loads(plan_data)
+        
+        # Создаем запрос на оптимизацию
+        optimization_request = OptimizationRequest(
+            data=data,
+            duration_weight=7.0,
+            resource_weight=3.0,
+            cost_weight=1.0,
+            num_episodes=500,
+            use_pretrained_model=False,
+            algorithm="reinforcement_learning"
+        )
+        
+        # Запускаем оптимизацию
+        result = await optimize_json(background_tasks, optimization_request)
+        
+        # Перенаправляем на страницу с результатами
+        return RedirectResponse(url=f"/result/{result['job_id']}", status_code=303)
+        
+    except Exception as e:
+        return templates.TemplateResponse(
+            "server_load.html",
+            {
+                "request": request,
+                "error": f"Ошибка при оптимизации плана: {str(e)}",
+                "plan_data": plan_data
+            }
+        )
+
+@app.post("/create-new-plan")
+async def create_new_plan(
+    request: Request,
+    id_1: str = Form(...),
+    bearer: str = Form(...),
+    plan_data: str = Form(...)
+):
+    """
+    Создание нового плана на сервере Sbertech
+    """
+    try:
+        # Формируем URL для запроса
+        base_url = "https://saas.works.sbertech.ru/gantt/rest/srvc/v1/accountingObjects"
+        url = f"{base_url}/{id_1}/plans/new"
+        
+        # Формируем заголовки
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Dspc-Tenant": "SBT-TNT",
+            "Authorization": f"Bearer {bearer}",
+            "User-Agent": "Mozilla/5.0"
+        }
+        
+        # Преобразуем данные плана
+        data = json_loads(plan_data)
+        
+        # Выполняем запрос к серверу
+        async with aiohttp.ClientSession(json_serialize=json_dumps) as session:
+            async with session.post(url, headers=headers, json=data) as response:
+                if response.status == 200:
+                    text = await response.text()
+                    result_data = json_loads(text)
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "success": "Новый план успешно создан",
+                            "plan_data": result_data
+                        }
+                    )
+                else:
+                    error_text = await response.text()
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "error": f"Ошибка при создании плана: {error_text}",
+                            "plan_data": plan_data
+                        }
+                    )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "server_load.html",
+            {
+                "request": request,
+                "error": f"Ошибка при выполнении запроса: {str(e)}",
+                "plan_data": plan_data
+            }
+        )
+
+@app.get("/download-plan")
+async def download_plan(request: Request):
+    """
+    Скачивание текущего плана в формате JSON
+    """
+    # Создаем временный файл
+    temp_file = os.path.join(TEMP_DIR, f"plan_{uuid.uuid4()}.json")
+    
+    try:
+        # Получаем данные из сессии или другого хранилища
+        # В данном случае мы просто возвращаем последний загруженный план
+        with open(temp_file, "w", encoding="utf-8") as f:
+            json.dump(request.session.get("plan_data", {}), f, ensure_ascii=False, indent=2)
+        
+        return FileResponse(
+            temp_file,
+            media_type="application/json",
+            filename="plan.json"
+        )
+    finally:
+        # Удаляем временный файл после отправки
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
 
 # Запуск приложения
 if __name__ == "__main__":

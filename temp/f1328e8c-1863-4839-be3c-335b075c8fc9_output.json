@@ -1,0 +1,19 @@
+{
+  "tasks": [
+    {
+      "id": "7481244236635504641",
+      "startDate": "2025-03-13T14:00:00",
+      "endDate": "2025-03-27T14:00:00",
+      "assignedResourceId": "7481203804404514820"
+    },
+    {
+      "id": "7481244236635504642",
+      "startDate": "2025-03-27T14:00:00",
+      "endDate": "2025-04-10T14:00:00",
+      "assignedResourceId": "7481203804404514820"
+    }
+  ],
+  "totalDuration": 28.0,
+  "resourceUtilization": 100.0,
+  "totalCost": 2800.0
+}

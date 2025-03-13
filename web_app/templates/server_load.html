@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка плана с сервера - Оптимизатор календарного плана{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.css' rel='stylesheet' />
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.10/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        margin-top: 20px;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .task-event {
+        cursor: pointer;
+    }
+    .task-tooltip {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        max-width: 300px;
+    }
+    .nav-tabs {
+        margin-bottom: 20px;
+    }
+    .json-actions {
+        margin-bottom: 15px;
+    }
+    .optimization-params {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h2>Загрузка и оптимизация плана</h2>
+    </div>
+    <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <ul class="nav nav-tabs" id="planTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="load-tab" data-bs-toggle="tab" data-bs-target="#load" type="button" role="tab">
+                    Загрузка плана
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="optimize-tab" data-bs-toggle="tab" data-bs-target="#optimize" type="button" role="tab">
+                    Оптимизация
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
+                    Создание нового плана
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="planTabsContent">
+            <!-- Вкладка загрузки плана -->
+            <div class="tab-pane fade show active" id="load" role="tabpanel">
+                <form action="/server-load" method="post" class="mt-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_1" class="form-label">ID_1 (accountingObjects)</label>
+                                <input type="text" class="form-control" id="id_1" name="id_1" required>
+                                <div class="form-text">Идентификатор объекта учета</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="id_2" class="form-label">ID_2 (plans)</label>
+                                <input type="text" class="form-control" id="id_2" name="id_2" required>
+                                <div class="form-text">Идентификатор плана</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="bearer" class="form-label">Bearer Token</label>
+                                <input type="text" class="form-control" id="bearer" name="bearer" required>
+                                <div class="form-text">Токен авторизации</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">Загрузить план</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Вкладка оптимизации -->
+            <div class="tab-pane fade" id="optimize" role="tabpanel">
+                {% if plan_data %}
+                <div class="optimization-params">
+                    <h4>Параметры оптимизации</h4>
+                    <form action="/optimize-server-plan" method="post" class="mt-3">
+                        <input type="hidden" name="plan_data" value="{{ plan_data | tojson }}">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Алгоритм оптимизации</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="algorithm" id="rl" value="reinforcement_learning" checked>
+                                    <label class="form-check-label" for="rl">
+                                        Обучение с подкреплением (RL)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="algorithm" id="sa" value="simulated_annealing">
+                                    <label class="form-check-label" for="sa">
+                                        Алгоритм отжига
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="duration_weight" class="form-label">Вес длительности</label>
+                                    <input type="number" class="form-control" id="duration_weight" name="duration_weight" value="7.0" step="0.1" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="resource_weight" class="form-label">Вес ресурсов</label>
+                                    <input type="number" class="form-control" id="resource_weight" name="resource_weight" value="3.0" step="0.1" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="cost_weight" class="form-label">Вес стоимости</label>
+                                    <input type="number" class="form-control" id="cost_weight" name="cost_weight" value="1.0" step="0.1" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-success">Запустить оптимизацию</button>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    Сначала загрузите план с сервера для его оптимизации.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Вкладка создания нового плана -->
+            <div class="tab-pane fade" id="create" role="tabpanel">
+                {% if plan_data %}
+                <form action="/create-new-plan" method="post" class="mt-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="create_id_1" class="form-label">ID_1 (accountingObjects)</label>
+                                <input type="text" class="form-control" id="create_id_1" name="id_1" required>
+                                <div class="form-text">Идентификатор объекта учета для нового плана</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="create_bearer" class="form-label">Bearer Token</label>
+                                <input type="text" class="form-control" id="create_bearer" name="bearer" required>
+                                <div class="form-text">Токен авторизации</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="plan_data" value="{{ plan_data | tojson }}">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">Создать новый план</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    Сначала загрузите план с сервера для создания нового плана на его основе.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if plan_data %}
+        <div class="mt-4">
+            <h4>Загруженный план</h4>
+            
+            <!-- Кнопки действий с JSON -->
+            <div class="json-actions">
+                <button class="btn btn-secondary" onclick="copyJson()">
+                    <i class="bi bi-clipboard"></i> Копировать JSON
+                </button>
+                <a href="/download-plan" class="btn btn-secondary" download="plan.json">
+                    <i class="bi bi-download"></i> Скачать JSON
+                </a>
+            </div>
+
+            <!-- Календарь -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div id='calendar'></div>
+                </div>
+            </div>
+
+            <!-- JSON данные -->
+            <div class="mt-4">
+                <h5>JSON данные плана:</h5>
+                <div class="bg-light p-3 rounded">
+                    <pre><code id="jsonData">{{ plan_data | tojson(indent=2) }}</code></pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/main.min.js'></script>
+
+<script>
+function copyJson() {
+    const jsonText = document.getElementById('jsonData').textContent;
+    navigator.clipboard.writeText(jsonText).then(() => {
+        alert('JSON скопирован в буфер обмена');
+    }).catch(err => {
+        console.error('Ошибка при копировании: ', err);
+        alert('Не удалось скопировать JSON');
+    });
+}
+
+{% if plan_data %}
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const tasks = {{ plan_data.tasks | tojson | safe }};
+    
+    // Преобразуем задачи в события для календаря
+    const events = tasks.map(task => ({
+        id: task.id,
+        title: task.name,
+        start: task.start_date,
+        end: task.end_date,
+        extendedProps: {
+            description: task.description,
+            resources: task.resources,
+            dependencies: task.dependencies,
+            duration: task.duration,
+            cost: task.cost
+        }
+    }));
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        events: events,
+        eventClassNames: 'task-event',
+        eventDidMount: function(info) {
+            info.el.addEventListener('mouseover', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'task-tooltip';
+                tooltip.innerHTML = `
+                    <strong>${info.event.title}</strong><br>
+                    ${info.event.extendedProps.description || ''}<br>
+                    <strong>Длительность:</strong> ${info.event.extendedProps.duration} дней<br>
+                    <strong>Стоимость:</strong> ${info.event.extendedProps.cost}<br>
+                    <strong>Ресурсы:</strong> ${info.event.extendedProps.resources.join(', ')}<br>
+                    <strong>Зависимости:</strong> ${info.event.extendedProps.dependencies.join(', ')}
+                `;
+                tooltip.style.top = (e.pageY + 10) + 'px';
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                document.body.appendChild(tooltip);
+            });
+
+            info.el.addEventListener('mouseout', function() {
+                const tooltips = document.querySelectorAll('.task-tooltip');
+                tooltips.forEach(t => t.remove());
+            });
+        }
+    });
+
+    calendar.render();
+});
+{% endif %}
+</script>
+{% endblock %} 
