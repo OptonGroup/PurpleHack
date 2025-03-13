@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import glob
 from tqdm import tqdm
+
+
 def load_client_dataframes(dir='telecom100k/psx', num_files=None):
     """
     Загружает указанное количество CSV файлов из директории клиентов в pandas DataFrame.
@@ -22,9 +24,10 @@ def load_client_dataframes(dir='telecom100k/psx', num_files=None):
     csv_files = glob.glob(os.path.join(dir, '*.csv'))
     parquet_files = glob.glob(os.path.join(dir, '*.parquet'))
     json_files = glob.glob(os.path.join(dir, '*.json'))
+    txt_files = glob.glob(os.path.join(dir, '*.txt'))
     
     # Объединяем все файлы
-    all_files = csv_files + parquet_files + json_files
+    all_files = csv_files + parquet_files + json_files + txt_files
     
     # Если num_files не указан, загружаем все файлы
     if num_files is None:
@@ -43,6 +46,8 @@ def load_client_dataframes(dir='telecom100k/psx', num_files=None):
                 df = pd.read_parquet(file_path)
             elif file_path.endswith('.json'):
                 df = pd.read_json(file_path)
+            elif file_path.endswith('.txt'):
+                df = pd.read_csv(file_path, sep='|')
             else:
                 print(f"Пропуск файла с неподдерживаемым расширением: {file_path}")
                 continue
@@ -177,7 +182,7 @@ def update_client_files(df, output_dir='clients'):
     grouped = df.groupby('IdClient')
     
     # Этап 1: Обновление или создание файлов без сортировки
-    for client_id, client_data in grouped:
+    for client_id, client_data in tqdm(grouped):
         file_path = os.path.join(output_dir, f'client_{client_id}.csv')
         
         if os.path.exists(file_path):
@@ -191,7 +196,7 @@ def update_client_files(df, output_dir='clients'):
     
     # Этап 2: Сортировка всех файлов в папке по EndPoint
     all_client_files = glob.glob(os.path.join(output_dir, 'client_*.csv'))
-    for file_path in all_client_files:
+    for file_path in tqdm(all_client_files):
         try:
             client_df = pd.read_csv(file_path)
             if 'EndPoint' in client_df.columns:
