@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  telecomguardian:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telecomguardian
+    volumes:
+      # Монтирование внешней директории для данных телекома
+      - ./telecom100k:/app/telecom100k
+      # Монтирование директорий для сохранения результатов
+      - ./data_output:/app/data_output
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=frontend_pred/server.py
+      - FLASK_ENV=production
+    restart: unless-stopped
+    command: python frontend_pred/server.py 

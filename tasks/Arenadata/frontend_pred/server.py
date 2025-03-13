@@ -58,8 +58,8 @@ def get_potential_anomalies():
             })
         else:
             return jsonify({
-                'status': 'success',
-                'data': []
+                'status': 'error',
+                'message': 'Файл с потенциальными аномалиями не найден'
             })
     except Exception as e:
         return jsonify({
@@ -249,4 +249,4 @@ def reject_anomaly(uid):
         })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=False, host='0.0.0.0', port=5000) 
