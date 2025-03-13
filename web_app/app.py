@@ -11,7 +11,7 @@ import logging
 import uuid
 import requests
 import aiohttp
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Set
 from fastapi import FastAPI, Request, Form, UploadFile, File, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -48,6 +48,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, 'css'), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, 'js'), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, 'img'), exist_ok=True)
 os.makedirs(TEMPLATE_DIR, exist_ok=True)
 
 # Инициализируем FastAPI
@@ -167,7 +168,18 @@ async def result_page(request: Request, job_id: str):
     if status["status"] == "completed" and os.path.exists(status["output_file"]):
         try:
             with open(status["output_file"], "r", encoding="utf-8") as f:
-                result_data = json.load(f)
+                optimized_data = json.load(f)
+            
+            # Проверяем, нужно ли восстановить оригинальную структуру
+            if job_id == request.session.get("optimization_job_id"):
+                original_structure = request.session.get("original_structure")
+                if original_structure:
+                    # Заменяем только tasks в оригинальной структуре
+                    original_structure["tasks"] = optimized_data.get("tasks", [])
+                    result_data = original_structure
+                else:
+                    result_data = optimized_data
+                
         except Exception as e:
             logger.error(f"Ошибка при чтении результата: {str(e)}")
     
@@ -492,18 +504,107 @@ async def load_from_server(
 async def optimize_server_plan(
     request: Request,
     background_tasks: BackgroundTasks,
-    plan_data: str = Form(...)
+    data_source: str = Form(None),
+    json_file: UploadFile = File(None),
+    plan_data: str = Form(None),
+    original_structure: bool = Form(True)
 ):
     """
-    Оптимизация плана, загруженного с сервера
+    Оптимизация плана, загруженного с сервера или из файла
     """
     try:
-        # Преобразуем строку JSON обратно в словарь
-        data = json.loads(plan_data)
+        # Определяем источник данных и получаем JSON
+        if data_source == "file" and json_file:
+            # Читаем данные из файла по частям
+            contents = []
+            chunk_size = 1024 * 1024  # 1MB chunks
+            while chunk := await json_file.read(chunk_size):
+                contents.append(chunk)
+            file_content = b''.join(contents)
+            
+            try:
+                data = json_loads(file_content.decode('utf-8'))
+            except UnicodeDecodeError:
+                try:
+                    data = json_loads(file_content.decode('latin-1'))
+                except:
+                    return templates.TemplateResponse(
+                        "server_load.html",
+                        {
+                            "request": request,
+                            "error": "Ошибка при чтении файла. Убедитесь, что это валидный JSON файл в кодировке UTF-8."
+                        }
+                    )
+        elif plan_data:
+            try:
+                data = json_loads(plan_data)
+            except:
+                return templates.TemplateResponse(
+                    "server_load.html",
+                    {
+                        "request": request,
+                        "error": "Ошибка при разборе JSON данных."
+                    }
+                )
+        else:
+            return templates.TemplateResponse(
+                "server_load.html",
+                {
+                    "request": request,
+                    "error": "Не найдены данные плана. Сначала загрузите план с сервера или выберите файл."
+                }
+            )
+
+        # Сохраняем оригинальную структуру JSON
+        original_data = data.copy()
+        
+        # Получаем задачи из данных (учитываем разные возможные форматы)
+        tasks = data.get("tasks", [])
+        if not tasks and isinstance(data, dict):
+            # Ищем задачи в других возможных местах структуры
+            for key, value in data.items():
+                if isinstance(value, list) and value and isinstance(value[0], dict) and "id" in value[0]:
+                    tasks = value
+                    break
+        
+        if not tasks:
+            return templates.TemplateResponse(
+                "server_load.html",
+                {
+                    "request": request,
+                    "error": "В загруженных данных не найдены задачи. Проверьте формат JSON файла."
+                }
+            )
+        
+        # Проверяем наличие ресурсов и добавляем их, если нет
+        resources = []
+        # Сначала ищем ресурсы в данных
+        if "resources" in data:
+            resources = data.get("resources", [])
+        
+        # Если ресурсов нет, собираем уникальные ресурсы из задач
+        if not resources:
+            unique_resources = set()
+            for task in tasks:
+                if "assignedResourceId" in task and task["assignedResourceId"]:
+                    unique_resources.add(task["assignedResourceId"])
+                elif "resource" in task and task["resource"]:
+                    unique_resources.add(task["resource"])
+            
+            # Создаем ресурсы из уникальных идентификаторов
+            for resource_id in unique_resources:
+                resources.append({
+                    "id": resource_id,
+                    "name": f"Ресурс {resource_id}",
+                    "capacity": 1
+                })
         
         # Создаем запрос на оптимизацию
         optimization_request = OptimizationRequest(
-            data=data,
+            data={
+                "tasks": tasks,
+                "resources": resources
+            },
             duration_weight=7.0,
             resource_weight=3.0,
             cost_weight=1.0,
@@ -515,16 +616,21 @@ async def optimize_server_plan(
         # Запускаем оптимизацию
         result = await optimize_json(background_tasks, optimization_request)
         
+        if original_structure:
+            # Сохраняем оригинальную структуру в сессии для последующего использования
+            request.session["original_structure"] = original_data
+            request.session["optimization_job_id"] = result["job_id"]
+        
         # Перенаправляем на страницу с результатами
         return RedirectResponse(url=f"/result/{result['job_id']}", status_code=303)
         
     except Exception as e:
+        logger.error(f"Ошибка при оптимизации плана: {str(e)}", exc_info=True)
         return templates.TemplateResponse(
             "server_load.html",
             {
                 "request": request,
-                "error": f"Ошибка при оптимизации плана: {str(e)}",
-                "plan_data": plan_data
+                "error": f"Ошибка при оптимизации плана: {str(e)}"
             }
         )
 

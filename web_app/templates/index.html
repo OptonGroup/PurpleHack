@@ -1,296 +1,275 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оптимизатор календарного плана</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css">
-</head>
-<body>
-    <!-- Навигационная панель -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">Оптимизатор календарного плана</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Главная</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/results">Результаты</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/docs-json">Документация</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/server-load">Загрузка с сервера</a>
-                    </li>
-                </ul>
+{% extends "base.html" %}
+
+{% block title %}Главная - Оптимизатор календарного плана{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2>Оптимизация календарного плана проекта</h2>
+            </div>
+            <div class="card-body">
+                <p>Загрузите JSON-файл с описанием проекта и настройте параметры оптимизации для создания оптимального календарного плана.</p>
+                
+                <!-- Отображение ошибок и предупреждений, если они есть -->
+                {% if errors %}
+                <div class="alert alert-danger">
+                    <h5>Ошибки:</h5>
+                    <ul>
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if warnings %}
+                <div class="alert alert-warning">
+                    <h5>Предупреждения:</h5>
+                    <ul>
+                        {% for warning in warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Форма загрузки файла -->
+                <form action="/upload" method="post" enctype="multipart/form-data" class="mt-3">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">JSON-файл с описанием проекта</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+                        <div class="form-text">Загрузите файл в формате JSON с описанием задач, ресурсов и зависимостей проекта.</div>
+                    </div>
+                    
+                    <h5>Параметры оптимизации</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="duration_weight" class="form-label">Вес длительности проекта</label>
+                                <input type="number" class="form-control" id="duration_weight" name="duration_weight" value="7.0" step="0.1" min="0" required>
+                                <div class="form-text">Чем выше значение, тем больше приоритет минимизации длительности проекта.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="resource_weight" class="form-label">Вес использования ресурсов</label>
+                                <input type="number" class="form-control" id="resource_weight" name="resource_weight" value="3.0" step="0.1" min="0" required>
+                                <div class="form-text">Чем выше значение, тем больше приоритет оптимального использования ресурсов.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="cost_weight" class="form-label">Вес стоимости</label>
+                                <input type="number" class="form-control" id="cost_weight" name="cost_weight" value="1.0" step="0.1" min="0" required>
+                                <div class="form-text">Чем выше значение, тем больше приоритет минимизации общей стоимости проекта.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Выбор алгоритма оптимизации -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label for="algorithm" class="form-label">Алгоритм оптимизации</label>
+                                <select class="form-select" id="algorithm" name="algorithm" onchange="toggleAlgorithmParams()">
+                                    <option value="reinforcement_learning">Обучение с подкреплением (Reinforcement Learning)</option>
+                                    <option value="simulated_annealing">Алгоритм имитации отжига (Simulated Annealing)</option>
+                                </select>
+                                <div class="form-text">Выберите алгоритм для оптимизации календарного плана проекта.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Информационные карточки для алгоритмов -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div id="rl-info-card" class="card bg-light">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Обучение с подкреплением</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Алгоритм использует глубокое Q-обучение (Deep Q-Learning) для поиска оптимального решения.</p>
+                                    <h6>Преимущества:</h6>
+                                    <ul>
+                                        <li>Учится на своем опыте и улучшается со временем</li>
+                                        <li>Хорошо справляется со сложными проектами с большим количеством задач</li>
+                                        <li>Возможность использования предобученной модели для ускорения оптимизации</li>
+                                    </ul>
+                                    <h6>Рекомендуется для:</h6>
+                                    <ul>
+                                        <li>Сложных проектов с большим числом взаимозависимостей</li>
+                                        <li>Когда нужно получить очень хорошее решение и есть время на обучение</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="sa-info-card" class="card bg-light" style="display: none;">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">Имитация отжига</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>Алгоритм использует метаэвристику, имитирующую процесс отжига в металлургии для поиска оптимального решения.</p>
+                                    <h6>Преимущества:</h6>
+                                    <ul>
+                                        <li>Быстрая сходимость к хорошему решению</li>
+                                        <li>Меньшая вычислительная сложность</li>
+                                        <li>Хорошо избегает локальных минимумов</li>
+                                    </ul>
+                                    <h6>Рекомендуется для:</h6>
+                                    <ul>
+                                        <li>Проектов среднего размера</li>
+                                        <li>Когда нужно быстро получить хорошее решение</li>
+                                        <li>Когда вычислительные ресурсы ограничены</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Параметры для алгоритма обучения с подкреплением -->
+                    <div id="rl-params">
+                        <h5>Параметры обучения с подкреплением</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="num_episodes" class="form-label">Количество эпизодов обучения</label>
+                                    <input type="number" class="form-control" id="num_episodes" name="num_episodes" value="500" min="1" required>
+                                    <div class="form-text">Большее количество эпизодов улучшает результат, но увеличивает время оптимизации.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check mt-4">
+                                        <input class="form-check-input" type="checkbox" value="true" id="use_pretrained_model" name="use_pretrained_model">
+                                        <label class="form-check-label" for="use_pretrained_model">
+                                            Использовать предобученную модель
+                                        </label>
+                                    </div>
+                                    <div class="form-text">Использование предобученной модели ускоряет оптимизацию, но может дать менее точные результаты.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="learning_rate" class="form-label">Темп обучения</label>
+                                    <input type="number" class="form-control" id="learning_rate" name="learning_rate" value="0.001" step="0.0001" min="0.0001" required>
+                                    <div class="form-text">Темп обучения для алгоритма обучения с подкреплением.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="gamma" class="form-label">Коэффициент дисконтирования</label>
+                                    <input type="number" class="form-control" id="gamma" name="gamma" value="0.99" step="0.01" min="0.01" max="0.99" required>
+                                    <div class="form-text">Коэффициент дисконтирования для алгоритма обучения с подкреплением.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Параметры для алгоритма имитации отжига -->
+                    <div id="annealing-params" style="display: none;">
+                        <h5>Параметры алгоритма имитации отжига</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="initial_temperature" class="form-label">Начальная температура</label>
+                                    <input type="number" class="form-control" id="initial_temperature" name="initial_temperature" value="100.0" step="0.1" min="0.1" required>
+                                    <div class="form-text">Начальная температура алгоритма (выше = более свободный поиск).</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cooling_rate" class="form-label">Скорость охлаждения</label>
+                                    <input type="number" class="form-control" id="cooling_rate" name="cooling_rate" value="0.95" step="0.01" min="0.01" max="0.99" required>
+                                    <div class="form-text">Скорость снижения температуры (ближе к 1 = медленнее).</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="min_temperature" class="form-label">Минимальная температура</label>
+                                    <input type="number" class="form-control" id="min_temperature" name="min_temperature" value="0.1" step="0.01" min="0.01" required>
+                                    <div class="form-text">Температура для остановки алгоритма.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="iterations_per_temp" class="form-label">Итераций на температуру</label>
+                                    <input type="number" class="form-control" id="iterations_per_temp" name="iterations_per_temp" value="100" min="1" required>
+                                    <div class="form-text">Количество итераций на каждой температуре.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="max_iterations" class="form-label">Максимум итераций</label>
+                                    <input type="number" class="form-control" id="max_iterations" name="max_iterations" value="10000" min="100" required>
+                                    <div class="form-text">Максимальное общее количество итераций.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">Запустить оптимизацию</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </nav>
-
-    <!-- Основное содержимое -->
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2>Оптимизация календарного плана проекта</h2>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4>Как это работает?</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="step-circle">1</div>
+                        <h5>Загрузка данных</h5>
+                        <p>Загрузите JSON-файл с описанием задач, ресурсов и зависимостей проекта</p>
                     </div>
-                    <div class="card-body">
-                        <p>Загрузите JSON-файл с описанием проекта и настройте параметры оптимизации для создания оптимального календарного плана.</p>
-                        
-                        <!-- Отображение ошибок и предупреждений, если они есть -->
-                        {% if errors %}
-                        <div class="alert alert-danger">
-                            <h5>Ошибки:</h5>
-                            <ul>
-                                {% for error in errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-                        
-                        {% if warnings %}
-                        <div class="alert alert-warning">
-                            <h5>Предупреждения:</h5>
-                            <ul>
-                                {% for warning in warnings %}
-                                <li>{{ warning }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Форма загрузки файла -->
-                        <form action="/upload" method="post" enctype="multipart/form-data" class="mt-3">
-                            <div class="mb-3">
-                                <label for="file" class="form-label">JSON-файл с описанием проекта</label>
-                                <input type="file" class="form-control" id="file" name="file" accept=".json" required>
-                                <div class="form-text">Загрузите файл в формате JSON с описанием задач, ресурсов и зависимостей проекта.</div>
-                            </div>
-                            
-                            <h5>Параметры оптимизации</h5>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="duration_weight" class="form-label">Вес длительности проекта</label>
-                                        <input type="number" class="form-control" id="duration_weight" name="duration_weight" value="7.0" step="0.1" min="0" required>
-                                        <div class="form-text">Чем выше значение, тем больше приоритет минимизации длительности проекта.</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="resource_weight" class="form-label">Вес использования ресурсов</label>
-                                        <input type="number" class="form-control" id="resource_weight" name="resource_weight" value="3.0" step="0.1" min="0" required>
-                                        <div class="form-text">Чем выше значение, тем больше приоритет оптимального использования ресурсов.</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="cost_weight" class="form-label">Вес стоимости</label>
-                                        <input type="number" class="form-control" id="cost_weight" name="cost_weight" value="1.0" step="0.1" min="0" required>
-                                        <div class="form-text">Чем выше значение, тем больше приоритет минимизации общей стоимости проекта.</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Выбор алгоритма оптимизации -->
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="mb-3">
-                                        <label for="algorithm" class="form-label">Алгоритм оптимизации</label>
-                                        <select class="form-select" id="algorithm" name="algorithm" onchange="toggleAlgorithmParams()">
-                                            <option value="reinforcement_learning">Обучение с подкреплением (Reinforcement Learning)</option>
-                                            <option value="simulated_annealing">Алгоритм имитации отжига (Simulated Annealing)</option>
-                                        </select>
-                                        <div class="form-text">Выберите алгоритм для оптимизации календарного плана проекта.</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Информационные карточки для алгоритмов -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div id="rl-info-card" class="card bg-light">
-                                        <div class="card-header bg-primary text-white">
-                                            <h5 class="mb-0">Обучение с подкреплением</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <p>Алгоритм использует глубокое Q-обучение (Deep Q-Learning) для поиска оптимального решения.</p>
-                                            <h6>Преимущества:</h6>
-                                            <ul>
-                                                <li>Учится на своем опыте и улучшается со временем</li>
-                                                <li>Хорошо справляется со сложными проектами с большим количеством задач</li>
-                                                <li>Возможность использования предобученной модели для ускорения оптимизации</li>
-                                            </ul>
-                                            <h6>Рекомендуется для:</h6>
-                                            <ul>
-                                                <li>Сложных проектов с большим числом взаимозависимостей</li>
-                                                <li>Когда нужно получить очень хорошее решение и есть время на обучение</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div id="sa-info-card" class="card bg-light" style="display: none;">
-                                        <div class="card-header bg-success text-white">
-                                            <h5 class="mb-0">Имитация отжига</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <p>Алгоритм использует метаэвристику, имитирующую процесс отжига в металлургии для поиска оптимального решения.</p>
-                                            <h6>Преимущества:</h6>
-                                            <ul>
-                                                <li>Быстрая сходимость к хорошему решению</li>
-                                                <li>Меньшая вычислительная сложность</li>
-                                                <li>Хорошо избегает локальных минимумов</li>
-                                            </ul>
-                                            <h6>Рекомендуется для:</h6>
-                                            <ul>
-                                                <li>Проектов среднего размера</li>
-                                                <li>Когда нужно быстро получить хорошее решение</li>
-                                                <li>Когда вычислительные ресурсы ограничены</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Параметры для алгоритма обучения с подкреплением -->
-                            <div id="rl-params">
-                                <h5>Параметры обучения с подкреплением</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="num_episodes" class="form-label">Количество эпизодов обучения</label>
-                                            <input type="number" class="form-control" id="num_episodes" name="num_episodes" value="500" min="1" required>
-                                            <div class="form-text">Большее количество эпизодов улучшает результат, но увеличивает время оптимизации.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <div class="form-check mt-4">
-                                                <input class="form-check-input" type="checkbox" value="true" id="use_pretrained_model" name="use_pretrained_model">
-                                                <label class="form-check-label" for="use_pretrained_model">
-                                                    Использовать предобученную модель
-                                                </label>
-                                            </div>
-                                            <div class="form-text">Использование предобученной модели ускоряет оптимизацию, но может дать менее точные результаты.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="learning_rate" class="form-label">Темп обучения</label>
-                                            <input type="number" class="form-control" id="learning_rate" name="learning_rate" value="0.001" step="0.0001" min="0.0001" required>
-                                            <div class="form-text">Темп обучения для алгоритма обучения с подкреплением.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="gamma" class="form-label">Коэффициент дисконтирования</label>
-                                            <input type="number" class="form-control" id="gamma" name="gamma" value="0.99" step="0.01" min="0.01" max="0.99" required>
-                                            <div class="form-text">Коэффициент дисконтирования для алгоритма обучения с подкреплением.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Параметры для алгоритма имитации отжига -->
-                            <div id="annealing-params" style="display: none;">
-                                <h5>Параметры алгоритма имитации отжига</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="initial_temperature" class="form-label">Начальная температура</label>
-                                            <input type="number" class="form-control" id="initial_temperature" name="initial_temperature" value="100.0" step="0.1" min="0.1" required>
-                                            <div class="form-text">Начальная температура алгоритма (выше = более свободный поиск).</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="cooling_rate" class="form-label">Скорость охлаждения</label>
-                                            <input type="number" class="form-control" id="cooling_rate" name="cooling_rate" value="0.95" step="0.01" min="0.01" max="0.99" required>
-                                            <div class="form-text">Скорость снижения температуры (ближе к 1 = медленнее).</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="min_temperature" class="form-label">Минимальная температура</label>
-                                            <input type="number" class="form-control" id="min_temperature" name="min_temperature" value="0.1" step="0.01" min="0.01" required>
-                                            <div class="form-text">Температура для остановки алгоритма.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="iterations_per_temp" class="form-label">Итераций на температуру</label>
-                                            <input type="number" class="form-control" id="iterations_per_temp" name="iterations_per_temp" value="100" min="1" required>
-                                            <div class="form-text">Количество итераций на каждой температуре.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="max_iterations" class="form-label">Максимум итераций</label>
-                                            <input type="number" class="form-control" id="max_iterations" name="max_iterations" value="10000" min="100" required>
-                                            <div class="form-text">Максимальное общее количество итераций.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="submit" class="btn btn-primary">Запустить оптимизацию</button>
-                            </div>
-                        </form>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="step-circle">2</div>
+                        <h5>Оптимизация</h5>
+                        <p>Выберите алгоритм (обучение с подкреплением или имитация отжига) и настройте параметры для оптимального плана</p>
                     </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h4>Как это работает?</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 text-center mb-3">
-                                <div class="step-circle">1</div>
-                                <h5>Загрузка данных</h5>
-                                <p>Загрузите JSON-файл с описанием задач, ресурсов и зависимостей проекта</p>
-                            </div>
-                            <div class="col-md-4 text-center mb-3">
-                                <div class="step-circle">2</div>
-                                <h5>Оптимизация</h5>
-                                <p>Выберите алгоритм (обучение с подкреплением или имитация отжига) и настройте параметры для оптимального плана</p>
-                            </div>
-                            <div class="col-md-4 text-center mb-3">
-                                <div class="step-circle">3</div>
-                                <h5>Результаты</h5>
-                                <p>Получите оптимизированный план проекта в виде JSON-файла и визуализации</p>
-                            </div>
-                        </div>
+                    <div class="col-md-4 text-center mb-3">
+                        <div class="step-circle">3</div>
+                        <h5>Результаты</h5>
+                        <p>Получите оптимизированный план проекта в виде JSON-файла и визуализации</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Подвал -->
-    <footer class="bg-dark text-white mt-5 py-3">
-        <div class="container text-center">
-            <p>© 2023 Оптимизатор календарного плана</p>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/main.js"></script>
-</body>
-</html> 
+{% block extra_js %}
+<script src="/static/js/main.js"></script>
+<script>
+function toggleAlgorithmParams() {
+    const algorithm = document.getElementById('algorithm').value;
+    const rlParams = document.getElementById('rl-params');
+    const saParams = document.getElementById('annealing-params');
+    const rlCard = document.getElementById('rl-info-card');
+    const saCard = document.getElementById('sa-info-card');
+    
+    if (algorithm === 'reinforcement_learning') {
+        rlParams.style.display = 'block';
+        saParams.style.display = 'none';
+        rlCard.style.display = 'block';
+        saCard.style.display = 'none';
+    } else {
+        rlParams.style.display = 'none';
+        saParams.style.display = 'block';
+        rlCard.style.display = 'none';
+        saCard.style.display = 'block';
+    }
+}
+</script>
+{% endblock %} 

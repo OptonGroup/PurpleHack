@@ -1,21 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Загрузка плана с сервера - Оптимизатор календарного плана{% endblock %}
+{% block title %}Загрузка с сервера - Оптимизатор календарного плана{% endblock %}
 
 {% block extra_css %}
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.css' rel='stylesheet' />
-<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.10/main.min.css' rel='stylesheet' />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.css" rel="stylesheet">
 <style>
-    #calendar {
-        margin-top: 20px;
-        background: white;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .task-event {
-        cursor: pointer;
+    .list-group-item.active {
+        z-index: 2;
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
     }
     .task-tooltip {
         position: absolute;
@@ -27,288 +22,430 @@
         z-index: 1000;
         max-width: 300px;
     }
-    .nav-tabs {
+    #calendar {
+        height: 500px;
         margin-bottom: 20px;
     }
-    .json-actions {
-        margin-bottom: 15px;
+    pre {
+        white-space: pre-wrap;
     }
-    .optimization-params {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 5px;
+    .logo-container {
+        text-align: center;
         margin-bottom: 20px;
+    }
+    .logo-container img {
+        max-width: 200px;
+        height: auto;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h2>Загрузка и оптимизация плана</h2>
+<div class="row">
+    <!-- Левая колонка с навигацией по вкладкам -->
+    <div class="col-md-3">
+        <div class="logo-container">
+            <img src="/static/img/logo.png" alt="Logo" class="img-fluid">
+        </div>
+        <div class="list-group sticky-top" style="top: 20px; z-index: 999;">
+            <a href="#tabs-load" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                <i class="bi bi-cloud-download me-2"></i> Загрузка плана
+            </a>
+            <a href="#tabs-optimization" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-gear me-2"></i> Оптимизация
+            </a>
+            <a href="#tabs-create" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="bi bi-plus-circle me-2"></i> Создание плана
+            </a>
+            <hr>
+            <a href="#" class="list-group-item list-group-item-action" onclick="copyJsonToClipboard(); return false;">
+                <i class="bi bi-clipboard me-2"></i> Скопировать JSON
+            </a>
+            <a href="/download-plan" class="list-group-item list-group-item-action" target="_blank">
+                <i class="bi bi-download me-2"></i> Скачать JSON
+            </a>
+        </div>
     </div>
-    <div class="card-body">
-        {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-        {% endif %}
 
-        {% if success %}
-        <div class="alert alert-success">
-            {{ success }}
-        </div>
-        {% endif %}
-
-        <ul class="nav nav-tabs" id="planTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="load-tab" data-bs-toggle="tab" data-bs-target="#load" type="button" role="tab">
-                    Загрузка плана
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="optimize-tab" data-bs-toggle="tab" data-bs-target="#optimize" type="button" role="tab">
-                    Оптимизация
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
-                    Создание нового плана
-                </button>
-            </li>
-        </ul>
-
-        <div class="tab-content" id="planTabsContent">
+    <!-- Правая колонка с содержимым вкладок -->
+    <div class="col-md-9">
+        <div class="tab-content">
             <!-- Вкладка загрузки плана -->
-            <div class="tab-pane fade show active" id="load" role="tabpanel">
-                <form action="/server-load" method="post" class="mt-3">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="id_1" class="form-label">ID_1 (accountingObjects)</label>
-                                <input type="text" class="form-control" id="id_1" name="id_1" required>
-                                <div class="form-text">Идентификатор объекта учета</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="id_2" class="form-label">ID_2 (plans)</label>
-                                <input type="text" class="form-control" id="id_2" name="id_2" required>
-                                <div class="form-text">Идентификатор плана</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="bearer" class="form-label">Bearer Token</label>
-                                <input type="text" class="form-control" id="bearer" name="bearer" required>
-                                <div class="form-text">Токен авторизации</div>
-                            </div>
-                        </div>
+            <div class="tab-pane fade show active" id="tabs-load">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Загрузка плана с сервера</h5>
                     </div>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">Загрузить план</button>
+                    <div class="card-body">
+                        <form action="/server-load" method="post" class="mb-4">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_1" class="form-label">ID_1 (accountingObjects)</label>
+                                        <input type="text" class="form-control" id="id_1" name="id_1" required>
+                                        <div class="form-text">Идентификатор объекта учета</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="id_2" class="form-label">ID_2 (plans)</label>
+                                        <input type="text" class="form-control" id="id_2" name="id_2" required>
+                                        <div class="form-text">Идентификатор плана</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="bearer" class="form-label">Bearer Token</label>
+                                        <input type="text" class="form-control" id="bearer" name="bearer" required>
+                                        <div class="form-text">Токен авторизации</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-cloud-download me-1"></i> Загрузить план
+                            </button>
+                        </form>
+                        
+                        {% if plan_data %}
+                        <hr>
+                        <h5>Загруженный план</h5>
+                        <div class="mt-3">
+                            <div id="calendar" class="mb-3"></div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>JSON данные</h6>
+                            <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto;"><code id="jsonData">{{ plan_data | tojson(indent=2) }}</code></pre>
+                        </div>
+                        {% endif %}
                     </div>
-                </form>
+                </div>
             </div>
 
             <!-- Вкладка оптимизации -->
-            <div class="tab-pane fade" id="optimize" role="tabpanel">
-                {% if plan_data %}
-                <div class="optimization-params">
-                    <h4>Параметры оптимизации</h4>
-                    <form action="/optimize-server-plan" method="post" class="mt-3">
-                        <input type="hidden" name="plan_data" value="{{ plan_data | tojson }}">
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Алгоритм оптимизации</label>
+            <div class="tab-pane fade" id="tabs-optimization">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Оптимизация плана</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/optimize-server-plan" method="post" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label">Источник данных</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="algorithm" id="rl" value="reinforcement_learning" checked>
-                                    <label class="form-check-label" for="rl">
-                                        Обучение с подкреплением (RL)
+                                    <input class="form-check-input" type="radio" name="data_source" id="dataSourceServer" value="server" checked onclick="toggleDataSource('server')">
+                                    <label class="form-check-label" for="dataSourceServer">
+                                        Использовать данные с сервера
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="algorithm" id="sa" value="simulated_annealing">
-                                    <label class="form-check-label" for="sa">
-                                        Алгоритм отжига
+                                    <input class="form-check-input" type="radio" name="data_source" id="dataSourceFile" value="file" onclick="toggleDataSource('file')">
+                                    <label class="form-check-label" for="dataSourceFile">
+                                        Загрузить свой JSON файл
                                     </label>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="duration_weight" class="form-label">Вес длительности</label>
-                                    <input type="number" class="form-control" id="duration_weight" name="duration_weight" value="7.0" step="0.1" min="0" required>
-                                </div>
+                            
+                            <div id="fileUploadSection" style="display:none;" class="mb-3">
+                                <label for="jsonFile" class="form-label">Выберите JSON файл</label>
+                                <input type="file" class="form-control" id="jsonFile" name="json_file" accept=".json">
+                                <div class="form-text">Загрузите файл в формате JSON</div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="resource_weight" class="form-label">Вес ресурсов</label>
-                                    <input type="number" class="form-control" id="resource_weight" name="resource_weight" value="3.0" step="0.1" min="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="cost_weight" class="form-label">Вес стоимости</label>
-                                    <input type="number" class="form-control" id="cost_weight" name="cost_weight" value="1.0" step="0.1" min="0" required>
-                                </div>
-                            </div>
-                        </div>
+                            
+                            <input type="hidden" name="plan_data" id="planDataField" value="{{ plan_data|tojson if plan_data else '{}' }}">
+                            <input type="hidden" name="original_structure" value="true">
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-success">Запустить оптимизацию</button>
-                        </div>
-                    </form>
-                </div>
-                {% else %}
-                <div class="alert alert-info">
-                    Сначала загрузите план с сервера для его оптимизации.
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Вкладка создания нового плана -->
-            <div class="tab-pane fade" id="create" role="tabpanel">
-                {% if plan_data %}
-                <form action="/create-new-plan" method="post" class="mt-3">
-                    <div class="row">
-                        <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="create_id_1" class="form-label">ID_1 (accountingObjects)</label>
-                                <input type="text" class="form-control" id="create_id_1" name="id_1" required>
-                                <div class="form-text">Идентификатор объекта учета для нового плана</div>
+                                <label for="algorithm" class="form-label">Алгоритм оптимизации</label>
+                                <select class="form-select" id="algorithm" name="algorithm" onchange="toggleAlgorithmParams()">
+                                    <option value="simulated_annealing">Имитация отжига</option>
+                                    <option value="reinforcement_learning">Обучение с подкреплением</option>
+                                </select>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="create_bearer" class="form-label">Bearer Token</label>
-                                <input type="text" class="form-control" id="create_bearer" name="bearer" required>
-                                <div class="form-text">Токен авторизации</div>
+                            
+                            <!-- Веса для всех алгоритмов -->
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="durationWeight" class="form-label">Вес длительности</label>
+                                        <input type="number" class="form-control" id="durationWeight" name="duration_weight" value="0.5" step="0.1" min="0" max="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="resourceWeight" class="form-label">Вес ресурсов</label>
+                                        <input type="number" class="form-control" id="resourceWeight" name="resource_weight" value="0.3" step="0.1" min="0" max="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="costWeight" class="form-label">Вес стоимости</label>
+                                        <input type="number" class="form-control" id="costWeight" name="cost_weight" value="0.2" step="0.1" min="0" max="1">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                            
+                            <!-- Параметры для алгоритма имитации отжига -->
+                            <div id="annealingParams">
+                                <h6 class="mb-3">Параметры имитации отжига</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="initialTemperature" class="form-label">Начальная температура</label>
+                                            <input type="number" class="form-control" id="initialTemperature" name="initial_temperature" value="100.0" step="10">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="coolingRate" class="form-label">Скорость охлаждения</label>
+                                            <input type="number" class="form-control" id="coolingRate" name="cooling_rate" value="0.95" step="0.01" min="0.1" max="0.99">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="minTemperature" class="form-label">Мин. температура</label>
+                                            <input type="number" class="form-control" id="minTemperature" name="min_temperature" value="0.1" step="0.1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="iterationsPerTemp" class="form-label">Итераций на темп.</label>
+                                            <input type="number" class="form-control" id="iterationsPerTemp" name="iterations_per_temp" value="10" step="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="maxIterations" class="form-label">Макс. итераций</label>
+                                            <input type="number" class="form-control" id="maxIterations" name="max_iterations" value="1000" step="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Параметры для алгоритма обучения с подкреплением -->
+                            <div id="rlParams" style="display:none;">
+                                <h6 class="mb-3">Параметры обучения с подкреплением</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="numEpisodes" class="form-label">Количество эпизодов</label>
+                                            <input type="number" class="form-control" id="numEpisodes" name="num_episodes" value="100" step="10">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" id="usePretrainedModel" name="use_pretrained_model">
+                                                <label class="form-check-label" for="usePretrainedModel">
+                                                    Использовать предобученную модель
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-gear me-1"></i> Запустить оптимизацию
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <input type="hidden" name="plan_data" value="{{ plan_data | tojson }}">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">Создать новый план</button>
-                    </div>
-                </form>
-                {% else %}
-                <div class="alert alert-info">
-                    Сначала загрузите план с сервера для создания нового плана на его основе.
                 </div>
-                {% endif %}
             </div>
-        </div>
-
-        {% if plan_data %}
-        <div class="mt-4">
-            <h4>Загруженный план</h4>
             
-            <!-- Кнопки действий с JSON -->
-            <div class="json-actions">
-                <button class="btn btn-secondary" onclick="copyJson()">
-                    <i class="bi bi-clipboard"></i> Копировать JSON
-                </button>
-                <a href="/download-plan" class="btn btn-secondary" download="plan.json">
-                    <i class="bi bi-download"></i> Скачать JSON
-                </a>
-            </div>
-
-            <!-- Календарь -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div id='calendar'></div>
-                </div>
-            </div>
-
-            <!-- JSON данные -->
-            <div class="mt-4">
-                <h5>JSON данные плана:</h5>
-                <div class="bg-light p-3 rounded">
-                    <pre><code id="jsonData">{{ plan_data | tojson(indent=2) }}</code></pre>
+            <!-- Вкладка создания плана -->
+            <div class="tab-pane fade" id="tabs-create">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Создание нового плана</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/create-new-plan" method="post" class="mt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="create_id_1" class="form-label">ID_1 (accountingObjects)</label>
+                                        <input type="text" class="form-control" id="create_id_1" name="id_1" required>
+                                        <div class="form-text">Идентификатор объекта учета для нового плана</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="create_bearer" class="form-label">Bearer Token</label>
+                                        <input type="text" class="form-control" id="create_bearer" name="bearer" required>
+                                        <div class="form-text">Токен авторизации</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="plan_data" value="{{ plan_data | tojson if plan_data else '{}' }}">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary">Создать новый план</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.10/main.min.js'></script>
-<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/main.min.js'></script>
-
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.0/main.min.js"></script>
 <script>
-function copyJson() {
-    const jsonText = document.getElementById('jsonData').textContent;
-    navigator.clipboard.writeText(jsonText).then(() => {
-        alert('JSON скопирован в буфер обмена');
-    }).catch(err => {
-        console.error('Ошибка при копировании: ', err);
-        alert('Не удалось скопировать JSON');
-    });
-}
-
-{% if plan_data %}
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const tasks = {{ plan_data.tasks | tojson | safe }};
+    // Функция для копирования JSON в буфер обмена
+    function copyJsonToClipboard() {
+        const jsonText = document.getElementById('jsonData')?.textContent;
+        if (jsonText) {
+            navigator.clipboard.writeText(jsonText).then(function() {
+                alert('JSON скопирован в буфер обмена');
+            }, function(err) {
+                console.error('Не удалось скопировать: ', err);
+                alert('Не удалось скопировать JSON');
+            });
+        } else {
+            alert('Нет данных для копирования. Сначала загрузите план.');
+        }
+    }
     
-    // Преобразуем задачи в события для календаря
-    const events = tasks.map(task => ({
-        id: task.id,
-        title: task.name,
-        start: task.start_date,
-        end: task.end_date,
-        extendedProps: {
-            description: task.description,
-            resources: task.resources,
-            dependencies: task.dependencies,
-            duration: task.duration,
-            cost: task.cost
+    // Функция для переключения источника данных
+    function toggleDataSource(source) {
+        const customUpload = document.getElementById('fileUploadSection');
+        if (source === 'file') {
+            customUpload.style.display = 'block';
+        } else {
+            customUpload.style.display = 'none';
         }
-    }));
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        events: events,
-        eventClassNames: 'task-event',
-        eventDidMount: function(info) {
-            info.el.addEventListener('mouseover', function(e) {
-                const tooltip = document.createElement('div');
-                tooltip.className = 'task-tooltip';
-                tooltip.innerHTML = `
-                    <strong>${info.event.title}</strong><br>
-                    ${info.event.extendedProps.description || ''}<br>
-                    <strong>Длительность:</strong> ${info.event.extendedProps.duration} дней<br>
-                    <strong>Стоимость:</strong> ${info.event.extendedProps.cost}<br>
-                    <strong>Ресурсы:</strong> ${info.event.extendedProps.resources.join(', ')}<br>
-                    <strong>Зависимости:</strong> ${info.event.extendedProps.dependencies.join(', ')}
-                `;
-                tooltip.style.top = (e.pageY + 10) + 'px';
-                tooltip.style.left = (e.pageX + 10) + 'px';
-                document.body.appendChild(tooltip);
-            });
-
-            info.el.addEventListener('mouseout', function() {
-                const tooltips = document.querySelectorAll('.task-tooltip');
-                tooltips.forEach(t => t.remove());
-            });
+    }
+    
+    // Функция для переключения параметров алгоритма
+    function toggleAlgorithmParams() {
+        const algorithm = document.getElementById('algorithm').value;
+        const annealingParams = document.getElementById('annealingParams');
+        const rlParams = document.getElementById('rlParams');
+        
+        if (algorithm === 'simulated_annealing') {
+            annealingParams.style.display = 'block';
+            rlParams.style.display = 'none';
+        } else {
+            annealingParams.style.display = 'none';
+            rlParams.style.display = 'block';
+        }
+    }
+    
+    // Обработчик изменения файла JSON
+    document.getElementById('jsonFile')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // Проверяем, что файл содержит валидный JSON
+                    const jsonData = JSON.parse(e.target.result);
+                    
+                    // Если в JSON нет ресурсов, проверяем наличие задач и ресурсов в них
+                    if (!jsonData.resources || jsonData.resources.length === 0) {
+                        console.log("В файле нет ресурсов, они будут созданы автоматически");
+                    }
+                } catch (error) {
+                    alert('Ошибка при чтении JSON файла: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
         }
     });
 
-    calendar.render();
-});
-{% endif %}
+    // Обработка отправки формы
+    document.querySelector('form[action="/optimize-server-plan"]')?.addEventListener('submit', function(e) {
+        e.preventDefault(); // Предотвращаем стандартную отправку формы
+        
+        const dataSource = document.querySelector('input[name="data_source"]:checked').value;
+        const form = e.target;
+        
+        // Создаем объект FormData для отправки файла
+        const formData = new FormData(form);
+        
+        // Если выбран источник "file", но файл не выбран
+        if (dataSource === 'file' && !document.getElementById('jsonFile').files.length) {
+            alert('Пожалуйста, выберите JSON файл');
+            return;
+        }
+
+        // Отправляем данные через fetch
+        fetch('/optimize-server-plan', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text);
+                });
+            }
+        })
+        .catch(error => {
+            alert('Ошибка при отправке данных: ' + error.message);
+        });
+    });
+
+    // Инициализация календаря при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if plan_data and plan_data.tasks %}
+        // Инициализация календаря
+        const calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            const tasks = {{ plan_data.tasks | tojson | safe }};
+            const events = tasks.map(function(task) {
+                return {
+                    id: task.id,
+                    title: "Задача " + task.id,
+                    start: task.startDate || task.start_date,
+                    end: task.endDate || task.end_date,
+                    allDay: true,
+                    backgroundColor: getRandomColor(task.assignedResourceId || task.resource)
+                };
+            });
+            
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listMonth'
+                },
+                events: events,
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                }
+            });
+            calendar.render();
+        }
+        {% endif %}
+    });
+    
+    // Функция для генерации случайного цвета на основе ID
+    function getRandomColor(id) {
+        if (!id) return '#6c757d';
+        let hash = 0;
+        for (let i = 0; i < String(id).length; i++) {
+            hash = String(id).charCodeAt(i) + ((hash << 5) - hash);
+        }
+        let color = '#';
+        for (let i = 0; i < 3; i++) {
+            let value = (hash >> (i * 8)) & 0xFF;
+            value = Math.max(64, Math.min(192, value));
+            color += ('00' + value.toString(16)).substr(-2);
+        }
+        return color;
+    }
 </script>
 {% endblock %} 

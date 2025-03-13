@@ -3,11 +3,15 @@ version: '3.8'
 services:
   web:
     build: .
+    container_name: purple_hack_web
+    restart: always
+    volumes:
+      - ./:/app
     ports:
       - "8000:8000"
-    volumes:
-      - ./data:/app/data
-      - ./web_app/temp:/app/web_app/temp
     environment:
-      - PYTHONPATH=/app
-    restart: unless-stopped
+      - PORT=8000
+      - WORKERS=2
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    command: gunicorn web_app.app:app --workers ${WORKERS:-2} --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:${PORT:-8000} --timeout 120 --reload

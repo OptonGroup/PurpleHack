@@ -1,10 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.git/
-.github/
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Результаты оптимизации и временные файлы
+web_app/temp/
+outputs/
+data/
+
+# IDE specific files
+.idea/
 .vscode/
-temp/
-*.log
+*.swp
+*.swo
+
+# Misc
 .DS_Store
+.pytest_cache/
+README.md
+LICENSE
+*.log

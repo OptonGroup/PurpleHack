@@ -1,92 +1,65 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Документация по формату JSON</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-</head>
-<body>
-    <!-- Навигационная панель -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="/">Оптимизатор календарного плана</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Главная</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/results">Результаты</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/docs-json">Документация</a>
-                    </li>
-                </ul>
+{% extends "base.html" %}
+
+{% block title %}Документация - Оптимизатор календарного плана{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <!-- Содержание -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4>Содержание</h4>
+            </div>
+            <div class="card-body">
+                <nav id="toc" class="navbar navbar-light">
+                    <nav class="nav nav-pills flex-column">
+                        <a class="nav-link" href="#overview">Обзор</a>
+                        <a class="nav-link" href="#input-format">Входной формат</a>
+                        <nav class="nav nav-pills flex-column">
+                            <a class="nav-link ms-3 my-1" href="#project-section">Раздел project</a>
+                            <a class="nav-link ms-3 my-1" href="#tasks-section">Раздел tasks</a>
+                            <a class="nav-link ms-3 my-1" href="#resources-section">Раздел resources</a>
+                            <a class="nav-link ms-3 my-1" href="#dependencies-section">Раздел dependencies</a>
+                            <a class="nav-link ms-3 my-1" href="#calendar-section">Раздел projectCalendar</a>
+                        </nav>
+                        <a class="nav-link" href="#output-format">Выходной формат</a>
+                        <a class="nav-link" href="#examples">Примеры</a>
+                        <a class="nav-link" href="#api">API справочник</a>
+                    </nav>
+                </nav>
             </div>
         </div>
-    </nav>
-
-    <!-- Основное содержимое -->
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-3">
-                <!-- Содержание -->
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h4>Содержание</h4>
-                    </div>
-                    <div class="card-body">
-                        <nav id="toc" class="navbar navbar-light">
-                            <nav class="nav nav-pills flex-column">
-                                <a class="nav-link" href="#overview">Обзор</a>
-                                <a class="nav-link" href="#input-format">Входной формат</a>
-                                <nav class="nav nav-pills flex-column">
-                                    <a class="nav-link ms-3 my-1" href="#project-section">Раздел project</a>
-                                    <a class="nav-link ms-3 my-1" href="#tasks-section">Раздел tasks</a>
-                                    <a class="nav-link ms-3 my-1" href="#resources-section">Раздел resources</a>
-                                    <a class="nav-link ms-3 my-1" href="#dependencies-section">Раздел dependencies</a>
-                                    <a class="nav-link ms-3 my-1" href="#calendar-section">Раздел projectCalendar</a>
-                                </nav>
-                                <a class="nav-link" href="#output-format">Выходной формат</a>
-                                <a class="nav-link" href="#examples">Примеры</a>
-                                <a class="nav-link" href="#api">API справочник</a>
-                            </nav>
-                        </nav>
-                    </div>
-                </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2>Документация по формату JSON</h2>
             </div>
-            
-            <div class="col-md-9">
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2>Документация по формату JSON</h2>
-                    </div>
-                    <div class="card-body">
-                        <section id="overview">
-                            <h3>Обзор</h3>
-                            <p>
-                                Для работы с оптимизатором календарного плана проекта используется структурированный формат JSON. 
-                                Этот документ описывает структуру входных и выходных данных, а также предоставляет примеры использования.
-                            </p>
-                        </section>
-                        
-                        <hr>
-                        
-                        <section id="input-format">
-                            <h3>Входной формат</h3>
-                            <p>
-                                Входной JSON-файл содержит информацию о проекте, задачах, ресурсах, зависимостях между задачами 
-                                и календаре проекта. Ниже представлена общая структура входного файла:
-                            </p>
-                            
-                            <pre><code class="language-json">{
+            <div class="card-body">
+                <section id="overview">
+                    <h3>Обзор</h3>
+                    <p>
+                        Для работы с оптимизатором календарного плана проекта используется структурированный формат JSON. 
+                        Этот документ описывает структуру входных и выходных данных, а также предоставляет примеры использования.
+                    </p>
+                </section>
+                
+                <hr>
+                
+                <section id="input-format">
+                    <h3>Входной формат</h3>
+                    <p>
+                        Входной JSON-файл содержит информацию о проекте, задачах, ресурсах, зависимостях между задачами 
+                        и календаре проекта. Ниже представлена общая структура входного файла:
+                    </p>
+                    
+                    <pre><code class="language-json">{
   "requestId": "string",
   "project": {
     // Информация о проекте
@@ -110,65 +83,65 @@
     // Календарь проекта (опционально)
   }
 }</code></pre>
-                            
-                            <section id="project-section" class="mt-4">
-                                <h4>Раздел project</h4>
-                                <p>
-                                    Содержит общую информацию о проекте, включая дату начала, название и другие метаданные.
-                                </p>
-                                
-                                <pre><code class="language-json">"project": {
+                    
+                    <section id="project-section" class="mt-4">
+                        <h4>Раздел project</h4>
+                        <p>
+                            Содержит общую информацию о проекте, включая дату начала, название и другие метаданные.
+                        </p>
+                        
+                        <pre><code class="language-json">"project": {
   "id": "string",
   "name": "string",
   "startDate": "2023-01-01T00:00:00Z",
   "description": "string"
 }</code></pre>
-                                
-                                <table class="table table-bordered mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th>Поле</th>
-                                            <th>Тип</th>
-                                            <th>Обязательное</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>id</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Уникальный идентификатор проекта</td>
-                                        </tr>
-                                        <tr>
-                                            <td>name</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Название проекта</td>
-                                        </tr>
-                                        <tr>
-                                            <td>startDate</td>
-                                            <td>string (ISO 8601)</td>
-                                            <td>Да</td>
-                                            <td>Дата начала проекта</td>
-                                        </tr>
-                                        <tr>
-                                            <td>description</td>
-                                            <td>string</td>
-                                            <td>Нет</td>
-                                            <td>Описание проекта</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                            
-                            <section id="tasks-section" class="mt-4">
-                                <h4>Раздел tasks</h4>
-                                <p>
-                                    Содержит массив задач проекта с их характеристиками.
-                                </p>
-                                
-                                <pre><code class="language-json">"tasks": {
+                        
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Поле</th>
+                                    <th>Тип</th>
+                                    <th>Обязательное</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Уникальный идентификатор проекта</td>
+                                </tr>
+                                <tr>
+                                    <td>name</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Название проекта</td>
+                                </tr>
+                                <tr>
+                                    <td>startDate</td>
+                                    <td>string (ISO 8601)</td>
+                                    <td>Да</td>
+                                    <td>Дата начала проекта</td>
+                                </tr>
+                                <tr>
+                                    <td>description</td>
+                                    <td>string</td>
+                                    <td>Нет</td>
+                                    <td>Описание проекта</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    
+                    <section id="tasks-section" class="mt-4">
+                        <h4>Раздел tasks</h4>
+                        <p>
+                            Содержит массив задач проекта с их характеристиками.
+                        </p>
+                        
+                        <pre><code class="language-json">"tasks": {
   "rows": [
     {
       "id": "string",
@@ -181,70 +154,70 @@
     }
   ]
 }</code></pre>
-                                
-                                <table class="table table-bordered mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th>Поле</th>
-                                            <th>Тип</th>
-                                            <th>Обязательное</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>id</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Уникальный идентификатор задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>name</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Название задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>duration</td>
-                                            <td>number</td>
-                                            <td>Да</td>
-                                            <td>Длительность задачи в днях</td>
-                                        </tr>
-                                        <tr>
-                                            <td>earliestStartDate</td>
-                                            <td>string (ISO 8601)</td>
-                                            <td>Нет</td>
-                                            <td>Самая ранняя возможная дата начала задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>latestEndDate</td>
-                                            <td>string (ISO 8601)</td>
-                                            <td>Нет</td>
-                                            <td>Самая поздняя возможная дата окончания задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>requiredResourceTypes</td>
-                                            <td>array of string</td>
-                                            <td>Да</td>
-                                            <td>Массив типов ресурсов, требуемых для выполнения задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>type</td>
-                                            <td>string</td>
-                                            <td>Нет</td>
-                                            <td>Тип задачи</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                            
-                            <section id="resources-section" class="mt-4">
-                                <h4>Раздел resources</h4>
-                                <p>
-                                    Содержит массив ресурсов, доступных для выполнения задач проекта.
-                                </p>
-                                
-                                <pre><code class="language-json">"resources": {
+                        
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Поле</th>
+                                    <th>Тип</th>
+                                    <th>Обязательное</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Уникальный идентификатор задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>name</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Название задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>duration</td>
+                                    <td>number</td>
+                                    <td>Да</td>
+                                    <td>Длительность задачи в днях</td>
+                                </tr>
+                                <tr>
+                                    <td>earliestStartDate</td>
+                                    <td>string (ISO 8601)</td>
+                                    <td>Нет</td>
+                                    <td>Самая ранняя возможная дата начала задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>latestEndDate</td>
+                                    <td>string (ISO 8601)</td>
+                                    <td>Нет</td>
+                                    <td>Самая поздняя возможная дата окончания задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>requiredResourceTypes</td>
+                                    <td>array of string</td>
+                                    <td>Да</td>
+                                    <td>Массив типов ресурсов, требуемых для выполнения задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>type</td>
+                                    <td>string</td>
+                                    <td>Нет</td>
+                                    <td>Тип задачи</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    
+                    <section id="resources-section" class="mt-4">
+                        <h4>Раздел resources</h4>
+                        <p>
+                            Содержит массив ресурсов, доступных для выполнения задач проекта.
+                        </p>
+                        
+                        <pre><code class="language-json">"resources": {
   "rows": [
     {
       "id": "string",
@@ -256,64 +229,64 @@
     }
   ]
 }</code></pre>
-                                
-                                <table class="table table-bordered mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th>Поле</th>
-                                            <th>Тип</th>
-                                            <th>Обязательное</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>id</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Уникальный идентификатор ресурса</td>
-                                        </tr>
-                                        <tr>
-                                            <td>name</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Название ресурса</td>
-                                        </tr>
-                                        <tr>
-                                            <td>type</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Тип ресурса (должен соответствовать requiredResourceTypes задач)</td>
-                                        </tr>
-                                        <tr>
-                                            <td>cost</td>
-                                            <td>number</td>
-                                            <td>Нет</td>
-                                            <td>Стоимость использования ресурса за день</td>
-                                        </tr>
-                                        <tr>
-                                            <td>efficiency</td>
-                                            <td>number</td>
-                                            <td>Нет</td>
-                                            <td>Коэффициент эффективности ресурса (1.0 = 100%)</td>
-                                        </tr>
-                                        <tr>
-                                            <td>maxAssignments</td>
-                                            <td>number</td>
-                                            <td>Нет</td>
-                                            <td>Максимальное количество одновременных назначений ресурса</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                            
-                            <section id="dependencies-section" class="mt-4">
-                                <h4>Раздел dependencies</h4>
-                                <p>
-                                    Содержит массив зависимостей между задачами проекта.
-                                </p>
-                                
-                                <pre><code class="language-json">"dependencies": {
+                        
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Поле</th>
+                                    <th>Тип</th>
+                                    <th>Обязательное</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Уникальный идентификатор ресурса</td>
+                                </tr>
+                                <tr>
+                                    <td>name</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Название ресурса</td>
+                                </tr>
+                                <tr>
+                                    <td>type</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Тип ресурса (должен соответствовать requiredResourceTypes задач)</td>
+                                </tr>
+                                <tr>
+                                    <td>cost</td>
+                                    <td>number</td>
+                                    <td>Нет</td>
+                                    <td>Стоимость использования ресурса за день</td>
+                                </tr>
+                                <tr>
+                                    <td>efficiency</td>
+                                    <td>number</td>
+                                    <td>Нет</td>
+                                    <td>Коэффициент эффективности ресурса (1.0 = 100%)</td>
+                                </tr>
+                                <tr>
+                                    <td>maxAssignments</td>
+                                    <td>number</td>
+                                    <td>Нет</td>
+                                    <td>Максимальное количество одновременных назначений ресурса</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    
+                    <section id="dependencies-section" class="mt-4">
+                        <h4>Раздел dependencies</h4>
+                        <p>
+                            Содержит массив зависимостей между задачами проекта.
+                        </p>
+                        
+                        <pre><code class="language-json">"dependencies": {
   "rows": [
     {
       "id": "string",
@@ -324,101 +297,101 @@
     }
   ]
 }</code></pre>
-                                
-                                <table class="table table-bordered mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th>Поле</th>
-                                            <th>Тип</th>
-                                            <th>Обязательное</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>id</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>Уникальный идентификатор зависимости</td>
-                                        </tr>
-                                        <tr>
-                                            <td>predecessorTaskId</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>ID предшествующей задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>successorTaskId</td>
-                                            <td>string</td>
-                                            <td>Да</td>
-                                            <td>ID последующей задачи</td>
-                                        </tr>
-                                        <tr>
-                                            <td>type</td>
-                                            <td>string</td>
-                                            <td>Нет</td>
-                                            <td>Тип зависимости (FinishToStart, StartToStart, FinishToFinish, StartToFinish)</td>
-                                        </tr>
-                                        <tr>
-                                            <td>lag</td>
-                                            <td>number</td>
-                                            <td>Нет</td>
-                                            <td>Задержка между задачами в днях</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                            
-                            <section id="calendar-section" class="mt-4">
-                                <h4>Раздел projectCalendar</h4>
-                                <p>
-                                    Опциональный раздел, содержащий информацию о рабочих и выходных днях проекта.
-                                </p>
-                                
-                                <pre><code class="language-json">"projectCalendar": {
+                        
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Поле</th>
+                                    <th>Тип</th>
+                                    <th>Обязательное</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>id</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>Уникальный идентификатор зависимости</td>
+                                </tr>
+                                <tr>
+                                    <td>predecessorTaskId</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>ID предшествующей задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>successorTaskId</td>
+                                    <td>string</td>
+                                    <td>Да</td>
+                                    <td>ID последующей задачи</td>
+                                </tr>
+                                <tr>
+                                    <td>type</td>
+                                    <td>string</td>
+                                    <td>Нет</td>
+                                    <td>Тип зависимости (FinishToStart, StartToStart, FinishToFinish, StartToFinish)</td>
+                                </tr>
+                                <tr>
+                                    <td>lag</td>
+                                    <td>number</td>
+                                    <td>Нет</td>
+                                    <td>Задержка между задачами в днях</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    
+                    <section id="calendar-section" class="mt-4">
+                        <h4>Раздел projectCalendar</h4>
+                        <p>
+                            Опциональный раздел, содержащий информацию о рабочих и выходных днях проекта.
+                        </p>
+                        
+                        <pre><code class="language-json">"projectCalendar": {
   "workingDays": [1, 2, 3, 4, 5],
   "holidays": [
     "2023-01-01",
     "2023-01-07"
   ]
 }</code></pre>
-                                
-                                <table class="table table-bordered mt-3">
-                                    <thead>
-                                        <tr>
-                                            <th>Поле</th>
-                                            <th>Тип</th>
-                                            <th>Обязательное</th>
-                                            <th>Описание</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>workingDays</td>
-                                            <td>array of number</td>
-                                            <td>Нет</td>
-                                            <td>Массив рабочих дней недели (1 = Понедельник, 7 = Воскресенье)</td>
-                                        </tr>
-                                        <tr>
-                                            <td>holidays</td>
-                                            <td>array of string</td>
-                                            <td>Нет</td>
-                                            <td>Массив дат праздников/выходных в формате "YYYY-MM-DD"</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </section>
-                        </section>
                         
-                        <hr>
-                        
-                        <section id="output-format">
-                            <h3>Выходной формат</h3>
-                            <p>
-                                Результат оптимизации возвращается в следующем формате:
-                            </p>
-                            
-                            <pre><code class="language-json">{
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Поле</th>
+                                    <th>Тип</th>
+                                    <th>Обязательное</th>
+                                    <th>Описание</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>workingDays</td>
+                                    <td>array of number</td>
+                                    <td>Нет</td>
+                                    <td>Массив рабочих дней недели (1 = Понедельник, 7 = Воскресенье)</td>
+                                </tr>
+                                <tr>
+                                    <td>holidays</td>
+                                    <td>array of string</td>
+                                    <td>Нет</td>
+                                    <td>Массив дат праздников/выходных в формате "YYYY-MM-DD"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                </section>
+                
+                <hr>
+                
+                <section id="output-format">
+                    <h3>Выходной формат</h3>
+                    <p>
+                        Результат оптимизации возвращается в следующем формате:
+                    </p>
+                    
+                    <pre><code class="language-json">{
   "tasks": [
     {
       "id": "string",
@@ -431,49 +404,49 @@
   "resourceUtilization": 85.7,
   "totalCost": 1500.0
 }</code></pre>
-                            
-                            <table class="table table-bordered mt-3">
-                                <thead>
-                                    <tr>
-                                        <th>Поле</th>
-                                        <th>Тип</th>
-                                        <th>Описание</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>tasks</td>
-                                        <td>array</td>
-                                        <td>Массив оптимизированных задач с назначенными датами и ресурсами</td>
-                                    </tr>
-                                    <tr>
-                                        <td>totalDuration</td>
-                                        <td>number</td>
-                                        <td>Общая длительность проекта в днях</td>
-                                    </tr>
-                                    <tr>
-                                        <td>resourceUtilization</td>
-                                        <td>number</td>
-                                        <td>Средний процент использования ресурсов (0-100)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>totalCost</td>
-                                        <td>number</td>
-                                        <td>Общая стоимость проекта</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </section>
-                        
-                        <hr>
-                        
-                        <section id="examples">
-                            <h3>Примеры</h3>
-                            <p>
-                                Пример минимального входного JSON-файла:
-                            </p>
-                            
-                            <pre><code class="language-json">{
+                    
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Поле</th>
+                                <th>Тип</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>tasks</td>
+                                <td>array</td>
+                                <td>Массив оптимизированных задач с назначенными датами и ресурсами</td>
+                            </tr>
+                            <tr>
+                                <td>totalDuration</td>
+                                <td>number</td>
+                                <td>Общая длительность проекта в днях</td>
+                            </tr>
+                            <tr>
+                                <td>resourceUtilization</td>
+                                <td>number</td>
+                                <td>Средний процент использования ресурсов (0-100)</td>
+                            </tr>
+                            <tr>
+                                <td>totalCost</td>
+                                <td>number</td>
+                                <td>Общая стоимость проекта</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+                
+                <hr>
+                
+                <section id="examples">
+                    <h3>Примеры</h3>
+                    <p>
+                        Пример минимального входного JSON-файла:
+                    </p>
+                    
+                    <pre><code class="language-json">{
   "requestId": "12345",
   "project": {
     "id": "project1",
@@ -516,75 +489,66 @@
     ]
   }
 }</code></pre>
-                        </section>
-                        
-                        <hr>
-                        
-                        <section id="api">
-                            <h3>API справочник</h3>
-                            <p>
-                                Оптимизатор предоставляет следующие API-эндпоинты:
-                            </p>
-                            
-                            <table class="table table-bordered mt-3">
-                                <thead>
-                                    <tr>
-                                        <th>Эндпоинт</th>
-                                        <th>Метод</th>
-                                        <th>Описание</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>/api/validate</td>
-                                        <td>POST</td>
-                                        <td>Валидация JSON-файла</td>
-                                    </tr>
-                                    <tr>
-                                        <td>/api/optimize</td>
-                                        <td>POST</td>
-                                        <td>Запуск оптимизации календарного плана</td>
-                                    </tr>
-                                    <tr>
-                                        <td>/api/status/{job_id}</td>
-                                        <td>GET</td>
-                                        <td>Получение статуса оптимизации</td>
-                                    </tr>
-                                    <tr>
-                                        <td>/api/result/{job_id}</td>
-                                        <td>GET</td>
-                                        <td>Получение результата оптимизации</td>
-                                    </tr>
-                                    <tr>
-                                        <td>/api/download/{job_id}</td>
-                                        <td>GET</td>
-                                        <td>Скачивание результата в формате JSON</td>
-                                    </tr>
-                                    <tr>
-                                        <td>/api/results</td>
-                                        <td>GET</td>
-                                        <td>Получение списка всех оптимизаций</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </section>
-                    </div>
-                </div>
+                </section>
+                
+                <hr>
+                
+                <section id="api">
+                    <h3>API справочник</h3>
+                    <p>
+                        Оптимизатор предоставляет следующие API-эндпоинты:
+                    </p>
+                    
+                    <table class="table table-bordered mt-3">
+                        <thead>
+                            <tr>
+                                <th>Эндпоинт</th>
+                                <th>Метод</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>/api/validate</td>
+                                <td>POST</td>
+                                <td>Валидация JSON-файла</td>
+                            </tr>
+                            <tr>
+                                <td>/api/optimize</td>
+                                <td>POST</td>
+                                <td>Запуск оптимизации календарного плана</td>
+                            </tr>
+                            <tr>
+                                <td>/api/status/{job_id}</td>
+                                <td>GET</td>
+                                <td>Получение статуса оптимизации</td>
+                            </tr>
+                            <tr>
+                                <td>/api/result/{job_id}</td>
+                                <td>GET</td>
+                                <td>Получение результата оптимизации</td>
+                            </tr>
+                            <tr>
+                                <td>/api/download/{job_id}</td>
+                                <td>GET</td>
+                                <td>Скачивание результата в формате JSON</td>
+                            </tr>
+                            <tr>
+                                <td>/api/results</td>
+                                <td>GET</td>
+                                <td>Получение списка всех оптимизаций</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Подвал -->
-    <footer class="bg-dark text-white mt-5 py-3">
-        <div class="container text-center">
-            <p>© 2023 Оптимизатор календарного плана</p>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
-    <script src="/static/js/main.js"></script>
-</body>
-</html> 
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+<script src="/static/js/main.js"></script>
+{% endblock %} 

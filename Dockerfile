@@ -3,19 +3,27 @@ FROM python:3.10-slim
 # Установка рабочей директории
 WORKDIR /app
 
-# Установка зависимостей
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Копирование исходного кода
+# Копирование и установка зависимостей
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копирование файлов проекта
 COPY . .
 
-# Установка переменных среды
-ENV PYTHONPATH=/app
+# Определение переменных окружения
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
+ENV WORKERS=2
 
 # Открываем порт
 EXPOSE 8000
 
-# Запуск приложения через uvicorn
-CMD ["uvicorn", "web_app.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Запуск веб-приложения через Gunicorn и Uvicorn
+CMD gunicorn web_app.app:app --workers $WORKERS --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
