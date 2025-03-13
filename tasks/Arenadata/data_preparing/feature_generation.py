@@ -2,6 +2,18 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 
 def process_client_data(df):
+    """
+    Обрабатывает данные клиента, преобразуя единицы передачи и вычисляя средние значения.
+
+    Параметры:
+      df : DataFrame
+          Датафрейм с данными клиента, содержащий колонки 'TransmitUnits', 'UpTx', 'DownTx', и 'Duration'.
+
+    Возвращает:
+      DataFrame
+          Обработанный датафрейм с добавленными колонками 'AvgPackets', 'AvgUp', и 'AvgDown'.
+    """
+    
     # Если в колонке TransmitUnits указано 'bytes', умножаем UpTx и DownTx на 8
     mask = df['TransmitUnits'] == 'bytes'
     df.loc[mask, 'UpTx'] = df.loc[mask, 'UpTx'] * 8
@@ -13,39 +25,21 @@ def process_client_data(df):
             return 0
         return (row['UpTx'] + row['DownTx']) / row['Duration']
     
-    # Применяем функцию и создаём столбец 'AvgPackets'
     df['AvgPackets'] = df.apply(compute_avg_packets, axis=1)
 
-    # Функция для расчёта среднего исходящего трафика
     def compute_avg_up(row):
         if row['Duration'] <= 0:
             return 0
         return row['UpTx'] / row['Duration']
     
-    # Функция для расчёта среднего входящего трафика
     def compute_avg_down(row):
         if row['Duration'] <= 0:
             return 0
         return row['DownTx'] / row['Duration']
     
-    # Создаём столбцы 'AvgUp' и 'AvgDown'
     df['AvgUp'] = df.apply(compute_avg_up, axis=1)
     df['AvgDown'] = df.apply(compute_avg_down, axis=1)
 
-    # Функция для извлечения второго значения из строки в колонке Attrs
-    def get_second_attr(row):
-        # Если Attrs или Delimiter отсутствуют, возвращаем None
-        if pd.isna(row['Attrs']) or pd.isna(row['Delimiter']):
-            return None
-        parts = row['Attrs'].split(row['Delimiter'])
-        # Проверяем, что есть как минимум два элемента
-        if len(parts) >= 2:
-            return parts[1]
-        else:
-            return None
-
-    # Добавляем новый столбец с вторым значением
-    df['EthernetPlan'] = df.apply(get_second_attr, axis=1)
     df = df.drop(columns=['Attrs', 'TransmitUnits', 'Delimiter'])
     
     return df
@@ -59,7 +53,7 @@ def convert_to_utc(date_str, date_format, tz_str):
     if pd.isna(date_str):
         return None
     dt = datetime.strptime(date_str, date_format)
-    offset = int(tz_str.replace("GMT", ""))  # извлекаем смещение (например, -6)
+    offset = int(tz_str.replace("GMT", ""))
     dt = dt.replace(tzinfo=timezone(timedelta(hours=offset)))
     return dt.astimezone(timezone.utc)
 
@@ -72,11 +66,9 @@ def process_session_columns(df):
     3. Удаляет оригинальные колонки StartSession, EndSession, TZ, DateFormat.
     """
 
-    # Преобразуем StartSession в UTC
     df['StartSessionUTC'] = df.apply(
         lambda row: convert_to_utc(row['StartSession'], row['DateFormat'], row['TZ']), axis=1
     )
-    # Преобразуем EndSession в UTC или ставим 0
     df['EndSessionUTC'] = df.apply(
         lambda row: convert_to_utc(row['EndSession'], row['DateFormat'], row['TZ'])
         if pd.notna(row['EndSession']) else 0,
@@ -85,17 +77,13 @@ def process_session_columns(df):
 
     # Функция для вычисления фактической длительности сессии
     def compute_session_duration(row):
-        # Если EndSessionUTC == 0, используем исходный Duration
         if row['EndSessionUTC'] == 0 or row['StartSessionUTC'] is None:
             return row['Duration']
         else:
-            # Вычисляем разницу во времени (в секундах)
             return (row['EndSessionUTC'] - row['StartSessionUTC']).total_seconds()
 
     # Добавляем новую колонку с рассчитанной длительностью
     df['SessionDuration'] = df.apply(compute_session_duration, axis=1)
-
-    # Удаляем ненужные колонки
     df = df.drop(columns=['StartSession', 'EndSession', 'TZ', 'Duration'])
 
     return df
@@ -124,5 +112,3 @@ def add_endpoint_column(df):
     df['EndPoint'] = df.apply(calc_endpoint, axis=1)
     df = df.drop(columns=['EndSessionUTC', 'DateFormat'])
     return df
-
-
