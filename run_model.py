@@ -19,7 +19,7 @@ from rich import print as rprint
 # Настраиваем пути
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.optimizer import optimize_schedule
+from src.optimizer import optimize_schedule, OptimizationAlgorithm
 
 def run_model():
     """
@@ -33,6 +33,45 @@ def run_model():
     parser.add_argument("-r", "--resource-weight", type=float, default=3.0, help="Вес ресурсов")
     parser.add_argument("-c", "--cost-weight", type=float, default=1.0, help="Вес стоимости проекта")
     parser.add_argument("-v", "--verbose", action="store_true", help="Подробный вывод")
+    # Добавляем опцию выбора алгоритма
+    parser.add_argument(
+        "-a", "--algorithm",
+        type=str,
+        choices=["reinforcement_learning", "simulated_annealing"],
+        default="reinforcement_learning",
+        help="Алгоритм оптимизации (по умолчанию: reinforcement_learning)"
+    )
+    # Добавляем параметры для алгоритма имитации отжига
+    parser.add_argument(
+        "--initial-temperature",
+        type=float,
+        default=100.0,
+        help="Начальная температура для алгоритма имитации отжига (по умолчанию: 100.0)"
+    )
+    parser.add_argument(
+        "--cooling-rate",
+        type=float,
+        default=0.95,
+        help="Скорость охлаждения для алгоритма имитации отжига (по умолчанию: 0.95)"
+    )
+    parser.add_argument(
+        "--min-temperature",
+        type=float,
+        default=0.1,
+        help="Минимальная температура для алгоритма имитации отжига (по умолчанию: 0.1)"
+    )
+    parser.add_argument(
+        "--iterations-per-temp",
+        type=int,
+        default=100,
+        help="Количество итераций на каждой температуре для алгоритма имитации отжига (по умолчанию: 100)"
+    )
+    parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=10000,
+        help="Максимальное количество итераций для алгоритма имитации отжига (по умолчанию: 10000)"
+    )
     args = parser.parse_args()
 
     # Настраиваем логирование
@@ -52,14 +91,21 @@ def run_model():
         logger.error(f"Входной файл {args.input} не найден")
         return 1
     
-    if not os.path.exists(args.model):
+    # Если выбран алгоритм RL, проверяем наличие модели
+    if args.algorithm == "reinforcement_learning" and not os.path.exists(args.model):
         logger.error(f"Файл модели {args.model} не найден")
         return 1
     
     try:
-        console.print(f"[bold]Запуск оптимизации с использованием модели {args.model}[/bold]")
+        if args.algorithm == "reinforcement_learning":
+            console.print(f"[bold]Запуск оптимизации с использованием модели {args.model}[/bold]")
+        else:
+            console.print(f"[bold]Запуск оптимизации с использованием алгоритма имитации отжига[/bold]")
+            console.print(f"[bold]Параметры алгоритма:[/bold] начальная температура={args.initial_temperature}, "
+                         f"скорость охлаждения={args.cooling_rate}, минимальная температура={args.min_temperature}, "
+                         f"итераций на температуру={args.iterations_per_temp}, максимум итераций={args.max_iterations}")
         
-        # Запускаем оптимизацию с предобученной моделью
+        # Вызываем функцию оптимизации с соответствующими параметрами
         optimized_schedule = optimize_schedule(
             input_file=args.input,
             output_file=args.output,
@@ -67,9 +113,15 @@ def run_model():
             resource_weight=args.resource_weight,
             cost_weight=args.cost_weight,
             num_episodes=0,  # Не обучаем заново, используем только предобученную модель
-            model_path=args.model,
+            model_path=args.model if args.algorithm == "reinforcement_learning" else None,
             save_model=False,  # Не перезаписываем модель
-            log_level=log_level
+            log_level=log_level,
+            algorithm=args.algorithm,
+            initial_temperature=args.initial_temperature,
+            cooling_rate=args.cooling_rate,
+            min_temperature=args.min_temperature,
+            iterations_per_temp=args.iterations_per_temp,
+            max_iterations=args.max_iterations
         )
         
         # Выводим результаты на экран

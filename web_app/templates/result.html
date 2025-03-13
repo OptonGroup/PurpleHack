@@ -89,11 +89,20 @@
                                 <th>Параметры оптимизации</th>
                                 <td>
                                     <ul>
+                                        <li>Алгоритм: {% if status.params.algorithm == "reinforcement_learning" %}Обучение с подкреплением{% else %}Имитация отжига{% endif %}</li>
                                         <li>Вес длительности: {{ status.params.duration_weight }}</li>
                                         <li>Вес ресурсов: {{ status.params.resource_weight }}</li>
                                         <li>Вес стоимости: {{ status.params.cost_weight }}</li>
+                                        {% if status.params.algorithm == "reinforcement_learning" %}
                                         <li>Количество эпизодов: {{ status.params.num_episodes }}</li>
                                         <li>Использование предобученной модели: {{ "Да" if status.params.use_pretrained_model else "Нет" }}</li>
+                                        {% else %}
+                                        <li>Начальная температура: {{ status.params.initial_temperature }}</li>
+                                        <li>Скорость охлаждения: {{ status.params.cooling_rate }}</li>
+                                        <li>Минимальная температура: {{ status.params.min_temperature }}</li>
+                                        <li>Итераций на температуру: {{ status.params.iterations_per_temp }}</li>
+                                        <li>Максимум итераций: {{ status.params.max_iterations }}</li>
+                                        {% endif %}
                                     </ul>
                                 </td>
                             </tr>

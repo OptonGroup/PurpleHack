@@ -12,7 +12,7 @@ import uuid
 import time
 import logging
 import threading
-from typing import Dict, Any, List, Tuple, Optional, Union
+from typing import Dict, Any, List, Tuple, Optional, Union, Literal
 from datetime import datetime, timedelta
 from fastapi import BackgroundTasks
 
@@ -21,7 +21,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Импортируем модули оптимизатора (замените на фактические импорты)
 try:
-    from src.optimizer import optimize_schedule
+    from src.optimizer import optimize_schedule, OptimizationAlgorithm
     from src.data.models import Dataset, convert_dataset_to_project_input, ProjectOutput
     OPTIMIZER_AVAILABLE = True
 except ImportError:
@@ -123,28 +123,51 @@ def _run_optimization_task(
     resource_weight: float,
     cost_weight: float,
     num_episodes: int,
-    model_path: Optional[str]
-):
+    model_path: Optional[str],
+    algorithm: OptimizationAlgorithm,
+    # Параметры для алгоритма обучения с подкреплением
+    learning_rate: float,
+    gamma: float,
+    # Параметры для алгоритма имитации отжига
+    initial_temperature: float,
+    cooling_rate: float,
+    min_temperature: float,
+    iterations_per_temp: int,
+    max_iterations: int
+) -> None:
     """
-    Запускает задачу оптимизации в фоновом режиме.
+    Выполняет задачу оптимизации в отдельном потоке.
     
     Args:
         job_id: Идентификатор задачи
-        input_file: Путь к входному файлу
-        output_file: Путь к выходному файлу
+        input_file: Путь к входному файлу JSON
+        output_file: Путь для сохранения оптимизированного плана
         duration_weight: Вес длительности проекта
         resource_weight: Вес ресурсов
-        cost_weight: Вес стоимости
+        cost_weight: Вес стоимости проекта
         num_episodes: Количество эпизодов обучения
         model_path: Путь к предобученной модели
+        algorithm: Алгоритм оптимизации ('reinforcement_learning' или 'simulated_annealing')
+        learning_rate: Темп обучения для алгоритма обучения с подкреплением
+        gamma: Коэффициент дисконтирования для алгоритма обучения с подкреплением
+        initial_temperature: Начальная температура для алгоритма имитации отжига
+        cooling_rate: Скорость охлаждения для алгоритма имитации отжига
+        min_temperature: Минимальная температура для алгоритма имитации отжига
+        iterations_per_temp: Количество итераций на каждой температуре для алгоритма имитации отжига
+        max_iterations: Максимальное количество итераций для алгоритма имитации отжига
     """
     try:
-        # Обновляем статус задачи
+        # Обновляем статус
         optimization_tasks[job_id]["status"] = "running"
-        optimization_tasks[job_id]["start_time"] = datetime.now().isoformat()
+        optimization_tasks[job_id]["progress"] = 0
+        optimization_tasks[job_id]["start_time"] = time.time()
+        
+        # Функция для отслеживания прогресса
+        def update_progress(progress):
+            optimization_tasks[job_id]["progress"] = progress
         
         if OPTIMIZER_AVAILABLE:
-            # Запускаем оптимизацию с помощью реального оптимизатора
+            # Выполняем оптимизацию с использованием настоящего оптимизатора
             result = optimize_schedule(
                 input_file=input_file,
                 output_file=output_file,
@@ -153,52 +176,53 @@ def _run_optimization_task(
                 cost_weight=cost_weight,
                 num_episodes=num_episodes,
                 model_path=model_path,
-                save_model=True,
-                model_save_path=f"{TEMP_DIR}/{job_id}_model.pt"
+                progress_callback=update_progress,
+                algorithm=algorithm,
+                # Параметры для алгоритма обучения с подкреплением
+                learning_rate=learning_rate,
+                gamma=gamma,
+                # Параметры для алгоритма имитации отжига
+                initial_temperature=initial_temperature,
+                cooling_rate=cooling_rate,
+                min_temperature=min_temperature,
+                iterations_per_temp=iterations_per_temp,
+                max_iterations=max_iterations
             )
             
-            # Сохраняем результат в формате JSON
-            with open(output_file, 'w', encoding='utf-8') as f:
-                # Если result - объект ProjectOutput, преобразуем его в словарь
-                if isinstance(result, ProjectOutput):
-                    result_dict = {
-                        "tasks": [
-                            {
-                                "id": task.id,
-                                "startDate": task.startDate.isoformat(),
-                                "endDate": task.endDate.isoformat(),
-                                "assignedResourceId": task.assignedResourceId
-                            }
-                            for task in result.tasks
-                        ],
-                        "totalDuration": result.totalDuration,
-                        "resourceUtilization": result.resourceUtilization,
-                        "totalCost": result.totalCost
-                    }
-                    json.dump(result_dict, f, indent=2)
-                else:
-                    # Если result уже словарь, сохраняем как есть
-                    json.dump(result, f, indent=2)
+            # Сохраняем результаты
+            optimization_tasks[job_id]["result"] = {
+                "tasks": [task.dict() for task in result.tasks],
+                "totalDuration": result.totalDuration,
+                "resourceUtilization": result.resourceUtilization,
+                "totalCost": result.totalCost
+            }
+            
+            optimization_tasks[job_id]["status"] = "completed"
+            optimization_tasks[job_id]["progress"] = 100
+            optimization_tasks[job_id]["end_time"] = time.time()
         else:
-            # Эмулируем оптимизацию, если оптимизатор недоступен
-            logger.info("Эмуляция оптимизации...")
-            time.sleep(5)  # Эмулируем длительный процесс
+            # Эмулируем выполнение оптимизации
+            for i in range(10):
+                time.sleep(1)  # Имитация работы
+                update_progress(i * 10)
             
-            # Генерируем тестовый результат
-            test_result = generate_random_plan()
+            # Генерируем случайный план
+            random_schedule = generate_random_plan()
+            optimization_tasks[job_id]["result"] = random_schedule
+            optimization_tasks[job_id]["status"] = "completed"
+            optimization_tasks[job_id]["progress"] = 100
+            optimization_tasks[job_id]["end_time"] = time.time()
             
+            # Сохраняем результаты в файл
             with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(test_result, f, indent=2)
-        
-        # Обновляем статус задачи
-        optimization_tasks[job_id]["status"] = "completed"
-        optimization_tasks[job_id]["end_time"] = datetime.now().isoformat()
+                json.dump(random_schedule, f, ensure_ascii=False, indent=2)
         
     except Exception as e:
-        logger.exception(f"Ошибка при оптимизации задачи {job_id}")
+        # В случае ошибки
+        logging.error(f"Ошибка при выполнении оптимизации {job_id}: {str(e)}")
         optimization_tasks[job_id]["status"] = "failed"
         optimization_tasks[job_id]["error"] = str(e)
-        optimization_tasks[job_id]["end_time"] = datetime.now().isoformat()
+        optimization_tasks[job_id]["end_time"] = time.time()
 
 def optimize_plan(
     data: Dict[str, Any],
@@ -208,54 +232,95 @@ def optimize_plan(
     num_episodes: int = 500,
     use_pretrained_model: bool = False,
     model_path: Optional[str] = None,
-    background_tasks: Optional[BackgroundTasks] = None
+    background_tasks: Optional[BackgroundTasks] = None,
+    algorithm: OptimizationAlgorithm = "reinforcement_learning",
+    # Параметры для алгоритма обучения с подкреплением
+    learning_rate: float = 0.001,
+    gamma: float = 0.99,
+    # Параметры для алгоритма имитации отжига
+    initial_temperature: float = 100.0,
+    cooling_rate: float = 0.95,
+    min_temperature: float = 0.1,
+    iterations_per_temp: int = 100,
+    max_iterations: int = 10000
 ) -> str:
     """
-    Запускает оптимизацию календарного плана.
+    Запускает оптимизацию плана проекта.
     
     Args:
         data: Данные проекта в формате JSON
         duration_weight: Вес длительности проекта
         resource_weight: Вес ресурсов
-        cost_weight: Вес стоимости
+        cost_weight: Вес стоимости проекта
         num_episodes: Количество эпизодов обучения
-        use_pretrained_model: Использовать предобученную модель
+        use_pretrained_model: Использовать ли предобученную модель
         model_path: Путь к предобученной модели
-        background_tasks: Объект BackgroundTasks для запуска фоновых задач
+        background_tasks: Объект BackgroundTasks для фоновых задач
+        algorithm: Алгоритм оптимизации ('reinforcement_learning' или 'simulated_annealing')
+        learning_rate: Темп обучения для алгоритма обучения с подкреплением
+        gamma: Коэффициент дисконтирования для алгоритма обучения с подкреплением
+        initial_temperature: Начальная температура для алгоритма имитации отжига
+        cooling_rate: Скорость охлаждения для алгоритма имитации отжига
+        min_temperature: Минимальная температура для алгоритма имитации отжига
+        iterations_per_temp: Количество итераций на каждой температуре для алгоритма имитации отжига
+        max_iterations: Максимальное количество итераций для алгоритма имитации отжига
         
     Returns:
         Идентификатор задачи оптимизации
     """
-    # Генерируем уникальный идентификатор задачи
+    # Директория для временных файлов
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    
+    # Создаем идентификатор задачи
     job_id = str(uuid.uuid4())
     
-    # Сохраняем входные данные во временный файл
-    input_file = f"{TEMP_DIR}/{job_id}_input.json"
+    # Пути к файлам
+    input_file = os.path.join(TEMP_DIR, f"{job_id}_input.json")
+    output_file = os.path.join(TEMP_DIR, f"{job_id}_output.json")
+    model_file = os.path.join(TEMP_DIR, f"{job_id}_model.pt")
+    
+    # Сохраняем входные данные
     with open(input_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
     
-    # Путь для сохранения результатов
-    output_file = f"{TEMP_DIR}/{job_id}_result.json"
+    # Определяем, какую модель использовать
+    model_to_use = None
+    if use_pretrained_model and model_path:
+        if os.path.exists(model_path):
+            # Используем указанную модель
+            model_to_use = model_path
+        else:
+            # Модель не найдена, используем стандартную
+            model_to_use = "trained_model.pt"
     
-    # Создаем запись о задаче
+    # Сохраняем информацию о задаче
     optimization_tasks[job_id] = {
         "id": job_id,
         "status": "pending",
-        "created_at": datetime.now().isoformat(),
+        "progress": 0,
+        "start_time": None,
+        "end_time": None,
         "input_file": input_file,
         "output_file": output_file,
-        "params": {
-            "duration_weight": duration_weight,
-            "resource_weight": resource_weight,
-            "cost_weight": cost_weight,
-            "num_episodes": num_episodes,
-            "use_pretrained_model": use_pretrained_model,
-            "model_path": model_path
-        }
+        "duration_weight": duration_weight,
+        "resource_weight": resource_weight,
+        "cost_weight": cost_weight,
+        "num_episodes": num_episodes,
+        "use_pretrained_model": use_pretrained_model,
+        "model_path": model_to_use,
+        "algorithm": algorithm,
+        # Параметры для алгоритма обучения с подкреплением
+        "learning_rate": learning_rate,
+        "gamma": gamma,
+        # Параметры для алгоритма имитации отжига
+        "initial_temperature": initial_temperature,
+        "cooling_rate": cooling_rate,
+        "min_temperature": min_temperature,
+        "iterations_per_temp": iterations_per_temp,
+        "max_iterations": max_iterations,
+        "result": None,
+        "error": None
     }
-    
-    # Определяем путь к модели
-    actual_model_path = model_path if use_pretrained_model and model_path else None
     
     # Запускаем задачу оптимизации в фоновом режиме
     if background_tasks:
@@ -267,11 +332,20 @@ def optimize_plan(
             duration_weight,
             resource_weight,
             cost_weight,
-            num_episodes,
-            actual_model_path
+            num_episodes if not use_pretrained_model else 0,
+            model_to_use,
+            algorithm,
+            # Параметры для алгоритма обучения с подкреплением
+            learning_rate,
+            gamma,
+            # Параметры для алгоритма имитации отжига
+            initial_temperature,
+            cooling_rate,
+            min_temperature,
+            iterations_per_temp,
+            max_iterations
         )
     else:
-        # Если background_tasks не предоставлен, используем threading
         thread = threading.Thread(
             target=_run_optimization_task,
             args=(
@@ -281,8 +355,18 @@ def optimize_plan(
                 duration_weight,
                 resource_weight,
                 cost_weight,
-                num_episodes,
-                actual_model_path
+                num_episodes if not use_pretrained_model else 0,
+                model_to_use,
+                algorithm,
+                # Параметры для алгоритма обучения с подкреплением
+                learning_rate,
+                gamma,
+                # Параметры для алгоритма имитации отжига
+                initial_temperature,
+                cooling_rate,
+                min_temperature,
+                iterations_per_temp,
+                max_iterations
             )
         )
         thread.daemon = True
@@ -303,7 +387,46 @@ def get_optimization_status(job_id: str) -> Dict[str, Any]:
     if job_id not in optimization_tasks:
         return {"id": job_id, "status": "not_found"}
     
-    return optimization_tasks[job_id]
+    # Получаем задачу
+    task = optimization_tasks[job_id]
+    
+    # Группируем параметры в подсловарь params
+    result = {
+        "id": task["id"],
+        "status": task["status"],
+        "progress": task["progress"],
+        "start_time": task["start_time"],
+        "end_time": task["end_time"],
+        "input_file": task["input_file"],
+        "output_file": task["output_file"],
+        "result": task["result"],
+        "error": task["error"],
+        "params": {
+            "duration_weight": task["duration_weight"],
+            "resource_weight": task["resource_weight"],
+            "cost_weight": task["cost_weight"],
+            "num_episodes": task["num_episodes"],
+            "use_pretrained_model": task["use_pretrained_model"],
+            "model_path": task["model_path"],
+            "algorithm": task["algorithm"],
+            "learning_rate": task["learning_rate"],
+            "gamma": task["gamma"],
+            "initial_temperature": task["initial_temperature"],
+            "cooling_rate": task["cooling_rate"],
+            "min_temperature": task["min_temperature"],
+            "iterations_per_temp": task["iterations_per_temp"],
+            "max_iterations": task["max_iterations"]
+        }
+    }
+    
+    # Вычисляем дополнительные поля
+    if task["start_time"]:
+        result["created_at"] = datetime.fromtimestamp(task["start_time"]).strftime("%Y-%m-%d %H:%M:%S")
+    
+    if task["end_time"]:
+        result["end_time"] = datetime.fromtimestamp(task["end_time"]).strftime("%Y-%m-%d %H:%M:%S")
+    
+    return result
 
 def get_all_optimization_results() -> List[Dict[str, Any]]:
     """
@@ -312,8 +435,15 @@ def get_all_optimization_results() -> List[Dict[str, Any]]:
     Returns:
         Список словарей с информацией о задачах оптимизации
     """
+    results = []
+    
+    for job_id in optimization_tasks:
+        # Используем уже существующую функцию для получения результата в нужном формате
+        results.append(get_optimization_status(job_id))
+    
+    # Сортируем результаты по времени создания (по убыванию)
     return sorted(
-        [task for task in optimization_tasks.values()],
+        results,
         key=lambda x: x.get("created_at", ""),
         reverse=True
     )

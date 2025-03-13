@@ -5,7 +5,7 @@
 системы для оптимизации календарного плана.
 """
 from datetime import datetime, date
-from typing import Dict, Any, List, Tuple, Optional, Callable
+from typing import Dict, Any, List, Tuple, Optional, Callable, Literal
 import json
 import logging
 import os
@@ -24,7 +24,10 @@ from src.data.models import (
 )
 from src.models.rl_environment import ProjectSchedulingEnvironment
 from src.models.rl_agent import RLAgent
+from src.models.simulated_annealing import optimize_schedule_with_sa
 
+# Типы поддерживаемых алгоритмов оптимизации
+OptimizationAlgorithm = Literal["reinforcement_learning", "simulated_annealing"]
 
 class Optimizer:
     """
@@ -40,7 +43,17 @@ class Optimizer:
         resource_weight: float = 1.0,
         cost_weight: float = 1.0,
         model_path: Optional[str] = None,
-        log_level: int = logging.INFO
+        log_level: int = logging.INFO,
+        algorithm: OptimizationAlgorithm = "reinforcement_learning",
+        # Параметры для алгоритма обучения с подкреплением
+        learning_rate: float = 0.001,
+        gamma: float = 0.99,
+        # Параметры для алгоритма имитации отжига
+        initial_temperature: float = 100.0,
+        cooling_rate: float = 0.95,
+        min_temperature: float = 0.1,
+        iterations_per_temp: int = 100,
+        max_iterations: int = 10000
     ):
         """
         Инициализирует оптимизатор.
@@ -52,6 +65,14 @@ class Optimizer:
             cost_weight: Вес стоимости проекта при расчете награды
             model_path: Путь к сохраненной модели
             log_level: Уровень логирования
+            algorithm: Алгоритм оптимизации ('reinforcement_learning' или 'simulated_annealing')
+            learning_rate: Темп обучения для алгоритма обучения с подкреплением
+            gamma: Коэффициент дисконтирования для алгоритма обучения с подкреплением
+            initial_temperature: Начальная температура для алгоритма имитации отжига
+            cooling_rate: Скорость охлаждения для алгоритма имитации отжига
+            min_temperature: Минимальная температура для алгоритма имитации отжига
+            iterations_per_temp: Количество итераций на каждой температуре для алгоритма имитации отжига
+            max_iterations: Максимальное количество итераций для алгоритма имитации отжига
         """
         # Настройка логирования
         self.logger = logging.getLogger(__name__)
@@ -70,9 +91,21 @@ class Optimizer:
         self.resource_weight = resource_weight
         self.cost_weight = cost_weight
         self.model_path = model_path
+        self.algorithm = algorithm
         
-        # Если входные данные предоставлены, инициализируем среду и агента
-        if project_input:
+        # Параметры для алгоритма обучения с подкреплением
+        self.learning_rate = learning_rate
+        self.gamma = gamma
+        
+        # Параметры для алгоритма имитации отжига
+        self.initial_temperature = initial_temperature
+        self.cooling_rate = cooling_rate
+        self.min_temperature = min_temperature
+        self.iterations_per_temp = iterations_per_temp
+        self.max_iterations = max_iterations
+        
+        # Если входные данные предоставлены и выбран алгоритм RL, инициализируем среду и агента
+        if project_input and algorithm == "reinforcement_learning":
             self._initialize_environment_and_agent()
     
     def load_data_from_file(self, file_path: str) -> Dataset:
@@ -289,11 +322,11 @@ class Optimizer:
         # Создаем агента
         self.agent = RLAgent(
             env=self.env,
-            gamma=0.99,  # Коэффициент дисконтирования
+            gamma=self.gamma,  # Коэффициент дисконтирования
             epsilon_start=1.0,  # Начальное значение для epsilon-greedy
             epsilon_end=0.01,  # Конечное значение для epsilon-greedy
             epsilon_decay=0.995,  # Скорость убывания epsilon
-            learning_rate=0.001,  # Скорость обучения
+            learning_rate=self.learning_rate,  # Скорость обучения
             batch_size=64,  # Размер батча для обучения
             memory_capacity=10000,  # Размер памяти для опыта
             target_update_frequency=10  # Частота обновления целевой сети
@@ -374,66 +407,102 @@ class Optimizer:
         Оптимизирует календарный план проекта.
         
         Returns:
-            Оптимизированный план проекта
+            Оптимизированный календарный план в формате ProjectOutput
         """
-        self.logger.info("Запуск оптимизации календарного плана...")
+        if not self.project_input:
+            raise ValueError("Входные данные проекта не предоставлены")
         
-        # Убедимся, что среда и агент инициализированы
-        if not hasattr(self, 'env') or not hasattr(self, 'agent'):
-            self.logger.info("Инициализация среды и агента...")
-            self._initialize_environment_and_agent()
-        
-        # Получаем оптимизированное расписание
-        schedule = self.agent.optimize_schedule()
-        
-        # Создаем выходной объект
-        optimized_tasks = []
-        
-        for task_id, (start_date, end_date, resource_id) in schedule.items():
-            optimized_task = OptimizedTask(
-                id=task_id,
-                startDate=start_date,
-                endDate=end_date,
-                assignedResourceId=resource_id
-            )
-            optimized_tasks.append(optimized_task)
-        
-        # Рассчитываем общую длительность проекта
-        if optimized_tasks:
-            project_end = max(task.endDate for task in optimized_tasks)
-            project_start = min(task.startDate for task in optimized_tasks)
-            total_duration = (project_end - project_start).days
-        else:
-            total_duration = 0
-        
-        # Рассчитываем утилизацию ресурсов
-        total_resource_days = len(self.project_input.resources) * total_duration
-        total_task_days = sum((task.endDate - task.startDate).days for task in optimized_tasks)
-        resource_utilization = (total_task_days / total_resource_days * 100) if total_resource_days > 0 else 0
-        
-        # Рассчитываем общую стоимость
-        total_cost = 0
-        for task in optimized_tasks:
-            resource = next((r for r in self.project_input.resources if r.id == task.assignedResourceId), None)
-            if resource:
-                # Логируем информацию о ресурсе для отладки
-                self.logger.debug(f"Ресурс для задачи {task.id}: {resource.id}, имеет атрибут cost: {hasattr(resource, 'cost')}")
-                if hasattr(resource, 'cost'):
-                    self.logger.debug(f"Стоимость ресурса {resource.id}: {resource.cost}")
+        if self.algorithm == "reinforcement_learning":
+            # Проверяем, что среда и агент инициализированы
+            if not hasattr(self, 'env') or not hasattr(self, 'agent'):
+                self.logger.info("Инициализация среды и агента...")
+                self._initialize_environment_and_agent()
+            
+            self.logger.info("Оптимизация с использованием Reinforcement Learning...")
+            
+            # Если модель не загружена, ничего не делаем
+            # Обучение модели выполняется отдельным методом train()
+            
+            # Запрашиваем у агента оптимальное расписание
+            schedule = self.agent.optimize_schedule()
+            
+            # Преобразуем расписание в формат ProjectOutput
+            optimized_tasks = []
+            
+            for task_id, (start_date, end_date, resource_id) in schedule.items():
+                optimized_task = OptimizedTask(
+                    id=task_id,
+                    startDate=start_date,
+                    endDate=end_date,
+                    assignedResourceId=resource_id
+                )
+                optimized_tasks.append(optimized_task)
+            
+            # Вычисляем общую длительность проекта и использование ресурсов
+            if optimized_tasks:
+                end_dates = [task.endDate for task in optimized_tasks]
+                project_end_date = max(end_dates)
+                
+                total_duration = (project_end_date - self.project_input.startDate).days
+                
+                # Вычисляем загрузку ресурсов
+                resources = {resource.id: resource for resource in self.project_input.resources}
+                resource_costs = {}
+                resource_busy_days = {}
+                
+                for resource_id in resources:
+                    resource_busy_days[resource_id] = 0
+                    if hasattr(resources[resource_id], 'cost'):
+                        resource_costs[resource_id] = resources[resource_id].cost
+                    else:
+                        resource_costs[resource_id] = 0
+                
+                total_cost = 0
+                
+                for task in optimized_tasks:
+                    resource_id = task.assignedResourceId
                     task_duration = (task.endDate - task.startDate).days
-                    task_cost = task_duration * resource.cost
-                    total_cost += task_cost
-                    self.logger.debug(f"Стоимость задачи {task.id}: {task_cost} (длительность: {task_duration} дней)")
+                    resource_busy_days[resource_id] += task_duration
+                    total_cost += resource_costs[resource_id] * task_duration
+                
+                # Вычисляем процент использования ресурсов
+                resource_utilization = 0
+                if total_duration > 0:
+                    for resource_id, busy_days in resource_busy_days.items():
+                        resource_utilization += busy_days / total_duration
+                    
+                    resource_utilization = resource_utilization / len(resources) * 100
+            else:
+                total_duration = 0
+                resource_utilization = 0
+                total_cost = 0
+            
+            return ProjectOutput(
+                tasks=optimized_tasks,
+                totalDuration=total_duration,
+                resourceUtilization=resource_utilization,
+                totalCost=total_cost
+            )
         
-        # Логируем итоговую стоимость
-        self.logger.info(f"Общая стоимость проекта: {total_cost}")
+        elif self.algorithm == "simulated_annealing":
+            self.logger.info("Оптимизация с использованием алгоритма имитации отжига...")
+            
+            # Используем функцию оптимизации на основе алгоритма имитации отжига
+            return optimize_schedule_with_sa(
+                project_input=self.project_input,
+                duration_weight=self.duration_weight,
+                resource_weight=self.resource_weight,
+                cost_weight=self.cost_weight,
+                initial_temperature=self.initial_temperature,
+                cooling_rate=self.cooling_rate,
+                min_temperature=self.min_temperature,
+                iterations_per_temp=self.iterations_per_temp,
+                max_iterations=self.max_iterations,
+                log_level=self.logger.level
+            )
         
-        return ProjectOutput(
-            tasks=optimized_tasks,
-            totalDuration=total_duration,
-            resourceUtilization=resource_utilization,
-            totalCost=total_cost
-        )
+        else:
+            raise ValueError(f"Неизвестный алгоритм оптимизации: {self.algorithm}")
     
     def save_optimized_schedule(self, schedule: ProjectOutput, file_path: str):
         """
@@ -469,70 +538,98 @@ def optimize_schedule(
     save_model: bool = True,
     model_save_path: Optional[str] = None,
     log_level: int = logging.INFO,
-    progress_callback: Optional[Callable[[float], None]] = None
+    progress_callback: Optional[Callable[[float], None]] = None,
+    algorithm: OptimizationAlgorithm = "reinforcement_learning",
+    # Параметры для алгоритма обучения с подкреплением
+    learning_rate: float = 0.001,
+    gamma: float = 0.99,
+    # Параметры для алгоритма имитации отжига
+    initial_temperature: float = 100.0,
+    cooling_rate: float = 0.95,
+    min_temperature: float = 0.1,
+    iterations_per_temp: int = 100,
+    max_iterations: int = 10000
 ) -> ProjectOutput:
     """
     Оптимизирует календарный план проекта.
     
     Args:
-        input_file: Путь к входному файлу JSON
+        input_file: Путь к файлу с данными
         output_file: Путь для сохранения оптимизированного плана
-        duration_weight: Вес длительности проекта
-        resource_weight: Вес ресурсов
-        cost_weight: Вес стоимости
-        num_episodes: Количество эпизодов обучения
-        model_path: Путь к сохраненной модели
-        save_model: Сохранять ли модель после обучения
-        model_save_path: Путь для сохранения модели
+        duration_weight: Вес длительности проекта при расчете награды
+        resource_weight: Вес количества ресурсов при расчете награды
+        cost_weight: Вес стоимости проекта при расчете награды
+        num_episodes: Количество эпизодов для обучения (только для RL)
+        model_path: Путь к предобученной модели (только для RL)
+        save_model: Сохранять ли обученную модель (только для RL)
+        model_save_path: Путь для сохранения модели (только для RL)
         log_level: Уровень логирования
-        progress_callback: Функция обратного вызова для отображения прогресса (0-100%)
+        progress_callback: Функция обратного вызова для отслеживания прогресса
+        algorithm: Алгоритм оптимизации ('reinforcement_learning' или 'simulated_annealing')
+        learning_rate: Темп обучения для алгоритма обучения с подкреплением
+        gamma: Коэффициент дисконтирования для алгоритма обучения с подкреплением
+        initial_temperature: Начальная температура для алгоритма имитации отжига
+        cooling_rate: Скорость охлаждения для алгоритма имитации отжига
+        min_temperature: Минимальная температура для алгоритма имитации отжига
+        iterations_per_temp: Количество итераций на каждой температуре для алгоритма имитации отжига
+        max_iterations: Максимальное количество итераций для алгоритма имитации отжига
         
     Returns:
         Оптимизированный план проекта
     """
-    # Настраиваем логирование
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger("optimizer")
+    # Получаем логгер
+    logger = logging.getLogger("src.optimizer")
+    logger.setLevel(log_level)
     
-    # Создаем оптимизатор без project_input (загрузим его из файла)
-    optimizer = Optimizer(
-        project_input=None,
-        duration_weight=duration_weight,
-        resource_weight=resource_weight,
-        cost_weight=cost_weight,
-        model_path=model_path,
-        log_level=log_level
-    )
-    
-    # Загружаем данные из файла и конвертируем в ProjectInput
-    logger.info(f"Загрузка данных из {input_file}...")
-    dataset = optimizer.load_data_from_file(input_file)
-    
-    # Конвертируем Dataset в ProjectInput
-    project_input = convert_dataset_to_project_input(dataset)
-    
-    # Устанавливаем project_input в оптимизаторе
-    optimizer.project_input = project_input
-    
-    # Проверяем, что данные загружены корректно
-    if not project_input or not project_input.tasks:
-        logger.error("Ошибка загрузки данных: проект не содержит задач")
-        return ProjectOutput(
-            tasks=[],
-            totalDuration=0.0,
-            resourceUtilization=0.0,
-            totalCost=0.0
-        )
-    
-    logger.info(f"Данные загружены успешно: {len(project_input.tasks)} задач, {len(project_input.resources)} ресурсов")
-    
-    # Обучаем агента, если необходимо
-    if num_episodes > 0:
-        logger.info(f"Запуск обучения на {num_episodes} эпизодах...")
+    # Создаем обработчик для логирования
+    if not logger.handlers:
+        handler = RichHandler(rich_tracebacks=True)
+        handler.setLevel(log_level)
+        formatter = logging.Formatter("%(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
         
-        # Если указан callback для прогресса, обновляем его во время обучения
-        if progress_callback:
-            # Создаем класс-обертку для отслеживания эпизодов
+    try:
+        # Создаем оптимизатор
+        optimizer = Optimizer(
+            project_input=None,  # Пока не загружаем данные
+            duration_weight=duration_weight,
+            resource_weight=resource_weight,
+            cost_weight=cost_weight,
+            model_path=model_path,
+            log_level=log_level,
+            algorithm=algorithm,
+            # Параметры для алгоритма обучения с подкреплением
+            learning_rate=learning_rate,
+            gamma=gamma,
+            # Параметры для алгоритма имитации отжига
+            initial_temperature=initial_temperature,
+            cooling_rate=cooling_rate,
+            min_temperature=min_temperature,
+            iterations_per_temp=iterations_per_temp,
+            max_iterations=max_iterations
+        )
+        
+        # Загружаем данные
+        logger.info(f"Загрузка данных из файла {input_file}...")
+        dataset = optimizer.load_data_from_file(input_file)
+        
+        # Преобразуем данные в формат ProjectInput
+        logger.info("Преобразование данных в формат ProjectInput...")
+        project_input = convert_dataset_to_project_input(dataset)
+        
+        # Устанавливаем проект в оптимизатор
+        optimizer.project_input = project_input
+        
+        # Если выбран алгоритм RL и нужно обучение
+        if algorithm == "reinforcement_learning" and num_episodes > 0:
+            # Инициализируем среду и агента
+            optimizer._initialize_environment_and_agent()
+            
+            # Запускаем обучение
+            logger.info(f"Запуск обучения на {num_episodes} эпизодах...")
+            
+            # Класс для отслеживания прогресса обучения
             class EpisodeTracker:
                 def __init__(self, total_episodes, callback):
                     self.total_episodes = total_episodes
@@ -541,38 +638,35 @@ def optimize_schedule(
                 
                 def update(self, episode_reward):
                     self.current_episode += 1
-                    progress = (self.current_episode / self.total_episodes) * 100
-                    self.callback(progress)
+                    if self.callback:
+                        progress = min(100.0, (self.current_episode / self.total_episodes) * 100)
+                        self.callback(progress)
             
-            # Создаем трекер эпизодов
-            tracker = EpisodeTracker(num_episodes, progress_callback)
+            # Создаем трекер для отслеживания прогресса
+            tracker = EpisodeTracker(num_episodes, progress_callback) if progress_callback else None
+            episode_callback = tracker.update if tracker else None
             
-            # Запускаем обучение с отслеживанием прогресса
-            optimizer.train(
+            # Запускаем обучение
+            rewards = optimizer.train(
                 num_episodes=num_episodes,
                 save_model=save_model,
-                model_save_path=model_save_path,
-                episode_callback=tracker.update
+                model_save_path=model_save_path or "model.pt",
+                episode_callback=episode_callback
             )
-        else:
-            # Обычное обучение без отслеживания прогресса
-            optimizer.train(
-                num_episodes=num_episodes,
-                save_model=save_model,
-                model_save_path=model_save_path
-            )
-    else:
-        logger.info("Обучение пропущено (num_episodes=0), используется предобученная модель")
+            
+            logger.info(f"Обучение завершено. Средняя награда: {sum(rewards) / len(rewards)}")
+        
+        # Запускаем оптимизацию
+        logger.info("Запуск оптимизации...")
+        optimized_schedule = optimizer.optimize()
+        
+        # Сохраняем результаты, если указан выходной файл
+        if output_file:
+            logger.info(f"Сохранение результатов в файл {output_file}...")
+            optimizer.save_optimized_schedule(optimized_schedule, output_file)
+        
+        return optimized_schedule
     
-    # Оптимизируем план
-    logger.info("Запуск оптимизации...")
-    optimized_schedule = optimizer.optimize()
-    
-    # Сохраняем результаты
-    if output_file:
-        logger.info(f"Сохранение оптимизированного плана в {output_file}...")
-        optimizer.save_optimized_schedule(optimized_schedule, output_file)
-    else:
-        logger.info("Сохранение результатов пропущено (output_file=None)")
-    
-    return optimized_schedule 
+    except Exception as e:
+        logger.exception(f"Ошибка при оптимизации: {str(e)}")
+        raise 

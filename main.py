@@ -8,7 +8,7 @@ import os
 from rich.console import Console
 from rich.logging import RichHandler
 
-from src.optimizer import optimize_schedule
+from src.optimizer import optimize_schedule, OptimizationAlgorithm
 
 
 def main():
@@ -84,6 +84,45 @@ def main():
         action="store_true", 
         help="Выводить детальную информацию о процессе оптимизации"
     )
+    # Добавляем опцию выбора алгоритма
+    parser.add_argument(
+        "-a", "--algorithm",
+        type=str,
+        choices=["reinforcement_learning", "simulated_annealing"],
+        default="reinforcement_learning",
+        help="Алгоритм оптимизации (по умолчанию: reinforcement_learning)"
+    )
+    # Добавляем параметры для алгоритма имитации отжига
+    parser.add_argument(
+        "--initial-temperature",
+        type=float,
+        default=100.0,
+        help="Начальная температура для алгоритма имитации отжига (по умолчанию: 100.0)"
+    )
+    parser.add_argument(
+        "--cooling-rate",
+        type=float,
+        default=0.95,
+        help="Скорость охлаждения для алгоритма имитации отжига (по умолчанию: 0.95)"
+    )
+    parser.add_argument(
+        "--min-temperature",
+        type=float,
+        default=0.1,
+        help="Минимальная температура для алгоритма имитации отжига (по умолчанию: 0.1)"
+    )
+    parser.add_argument(
+        "--iterations-per-temp",
+        type=int,
+        default=100,
+        help="Количество итераций на каждой температуре для алгоритма имитации отжига (по умолчанию: 100)"
+    )
+    parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=10000,
+        help="Максимальное количество итераций для алгоритма имитации отжига (по умолчанию: 10000)"
+    )
     
     # Парсинг аргументов
     args = parser.parse_args()
@@ -108,6 +147,12 @@ def main():
         # Запуск оптимизации
         logger.info("Запуск оптимизации календарного плана...")
         logger.info(f"Веса оптимизации: длительность={args.duration_weight}, ресурсы={args.resource_weight}, стоимость={args.cost_weight}")
+        logger.info(f"Выбранный алгоритм: {args.algorithm}")
+        
+        if args.algorithm == "simulated_annealing":
+            logger.info(f"Параметры имитации отжига: начальная температура={args.initial_temperature}, "
+                         f"скорость охлаждения={args.cooling_rate}, минимальная температура={args.min_temperature}, "
+                         f"итераций на температуру={args.iterations_per_temp}, максимум итераций={args.max_iterations}")
         
         optimized_schedule = optimize_schedule(
             input_file=args.input,
@@ -119,10 +164,19 @@ def main():
             model_path=args.model,
             save_model=args.save_model,
             model_save_path=args.model_save_path,
-            log_level=log_level
+            log_level=log_level,
+            algorithm=args.algorithm,
+            initial_temperature=args.initial_temperature,
+            cooling_rate=args.cooling_rate,
+            min_temperature=args.min_temperature,
+            iterations_per_temp=args.iterations_per_temp,
+            max_iterations=args.max_iterations
         )
         
         logger.info("Оптимизация успешно завершена!")
+        logger.info(f"Общая длительность проекта: {optimized_schedule.totalDuration:.2f} дней")
+        logger.info(f"Использование ресурсов: {optimized_schedule.resourceUtilization:.2f}%")
+        logger.info(f"Общая стоимость проекта: {optimized_schedule.totalCost:.2f}")
         logger.info(f"Оптимизированный план сохранен в {args.output}")
         
         return 0

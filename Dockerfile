@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 # Установка рабочей директории
 WORKDIR /app
@@ -10,13 +10,6 @@ RUN pip install -r requirements.txt
 # Копирование исходного кода
 COPY . .
 
-# Создание необходимых директорий
-RUN mkdir -p /app/web_app/temp \
-    && mkdir -p /app/web_app/static/css \
-    && mkdir -p /app/web_app/static/js \
-    && mkdir -p /app/web_app/templates \
-    && mkdir -p /app/web_app/models
-
 # Установка переменных среды
 ENV PYTHONPATH=/app
 ENV PORT=8000
@@ -24,5 +17,5 @@ ENV PORT=8000
 # Открываем порт
 EXPOSE 8000
 
-# Запуск приложения (веб-интерфейс)
-CMD ["python", "web_app/app.py"] 
+# Запуск приложения через uvicorn
+CMD ["uvicorn", "web_app.app:app", "--host", "0.0.0.0", "--port", "8000"]

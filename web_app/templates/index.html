@@ -98,23 +98,148 @@
                                 </div>
                             </div>
                             
+                            <!-- Выбор алгоритма оптимизации -->
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="mb-3">
-                                        <label for="num_episodes" class="form-label">Количество эпизодов обучения</label>
-                                        <input type="number" class="form-control" id="num_episodes" name="num_episodes" value="500" min="1" required>
-                                        <div class="form-text">Большее количество эпизодов улучшает результат, но увеличивает время оптимизации.</div>
+                                        <label for="algorithm" class="form-label">Алгоритм оптимизации</label>
+                                        <select class="form-select" id="algorithm" name="algorithm" onchange="toggleAlgorithmParams()">
+                                            <option value="reinforcement_learning">Обучение с подкреплением (Reinforcement Learning)</option>
+                                            <option value="simulated_annealing">Алгоритм имитации отжига (Simulated Annealing)</option>
+                                        </select>
+                                        <div class="form-text">Выберите алгоритм для оптимизации календарного плана проекта.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Информационные карточки для алгоритмов -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div id="rl-info-card" class="card bg-light">
+                                        <div class="card-header bg-primary text-white">
+                                            <h5 class="mb-0">Обучение с подкреплением</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>Алгоритм использует глубокое Q-обучение (Deep Q-Learning) для поиска оптимального решения.</p>
+                                            <h6>Преимущества:</h6>
+                                            <ul>
+                                                <li>Учится на своем опыте и улучшается со временем</li>
+                                                <li>Хорошо справляется со сложными проектами с большим количеством задач</li>
+                                                <li>Возможность использования предобученной модели для ускорения оптимизации</li>
+                                            </ul>
+                                            <h6>Рекомендуется для:</h6>
+                                            <ul>
+                                                <li>Сложных проектов с большим числом взаимозависимостей</li>
+                                                <li>Когда нужно получить очень хорошее решение и есть время на обучение</li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <div class="form-check mt-4">
-                                            <input class="form-check-input" type="checkbox" value="true" id="use_pretrained_model" name="use_pretrained_model">
-                                            <label class="form-check-label" for="use_pretrained_model">
-                                                Использовать предобученную модель
-                                            </label>
+                                    <div id="sa-info-card" class="card bg-light" style="display: none;">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0">Имитация отжига</h5>
                                         </div>
-                                        <div class="form-text">Использование предобученной модели ускоряет оптимизацию, но может дать менее точные результаты.</div>
+                                        <div class="card-body">
+                                            <p>Алгоритм использует метаэвристику, имитирующую процесс отжига в металлургии для поиска оптимального решения.</p>
+                                            <h6>Преимущества:</h6>
+                                            <ul>
+                                                <li>Быстрая сходимость к хорошему решению</li>
+                                                <li>Меньшая вычислительная сложность</li>
+                                                <li>Хорошо избегает локальных минимумов</li>
+                                            </ul>
+                                            <h6>Рекомендуется для:</h6>
+                                            <ul>
+                                                <li>Проектов среднего размера</li>
+                                                <li>Когда нужно быстро получить хорошее решение</li>
+                                                <li>Когда вычислительные ресурсы ограничены</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Параметры для алгоритма обучения с подкреплением -->
+                            <div id="rl-params">
+                                <h5>Параметры обучения с подкреплением</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="num_episodes" class="form-label">Количество эпизодов обучения</label>
+                                            <input type="number" class="form-control" id="num_episodes" name="num_episodes" value="500" min="1" required>
+                                            <div class="form-text">Большее количество эпизодов улучшает результат, но увеличивает время оптимизации.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" value="true" id="use_pretrained_model" name="use_pretrained_model">
+                                                <label class="form-check-label" for="use_pretrained_model">
+                                                    Использовать предобученную модель
+                                                </label>
+                                            </div>
+                                            <div class="form-text">Использование предобученной модели ускоряет оптимизацию, но может дать менее точные результаты.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="learning_rate" class="form-label">Темп обучения</label>
+                                            <input type="number" class="form-control" id="learning_rate" name="learning_rate" value="0.001" step="0.0001" min="0.0001" required>
+                                            <div class="form-text">Темп обучения для алгоритма обучения с подкреплением.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="gamma" class="form-label">Коэффициент дисконтирования</label>
+                                            <input type="number" class="form-control" id="gamma" name="gamma" value="0.99" step="0.01" min="0.01" max="0.99" required>
+                                            <div class="form-text">Коэффициент дисконтирования для алгоритма обучения с подкреплением.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Параметры для алгоритма имитации отжига -->
+                            <div id="annealing-params" style="display: none;">
+                                <h5>Параметры алгоритма имитации отжига</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="initial_temperature" class="form-label">Начальная температура</label>
+                                            <input type="number" class="form-control" id="initial_temperature" name="initial_temperature" value="100.0" step="0.1" min="0.1" required>
+                                            <div class="form-text">Начальная температура алгоритма (выше = более свободный поиск).</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="cooling_rate" class="form-label">Скорость охлаждения</label>
+                                            <input type="number" class="form-control" id="cooling_rate" name="cooling_rate" value="0.95" step="0.01" min="0.01" max="0.99" required>
+                                            <div class="form-text">Скорость снижения температуры (ближе к 1 = медленнее).</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_temperature" class="form-label">Минимальная температура</label>
+                                            <input type="number" class="form-control" id="min_temperature" name="min_temperature" value="0.1" step="0.01" min="0.01" required>
+                                            <div class="form-text">Температура для остановки алгоритма.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="iterations_per_temp" class="form-label">Итераций на температуру</label>
+                                            <input type="number" class="form-control" id="iterations_per_temp" name="iterations_per_temp" value="100" min="1" required>
+                                            <div class="form-text">Количество итераций на каждой температуре.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="max_iterations" class="form-label">Максимум итераций</label>
+                                            <input type="number" class="form-control" id="max_iterations" name="max_iterations" value="10000" min="100" required>
+                                            <div class="form-text">Максимальное общее количество итераций.</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -140,7 +265,7 @@
                             <div class="col-md-4 text-center mb-3">
                                 <div class="step-circle">2</div>
                                 <h5>Оптимизация</h5>
-                                <p>Наш алгоритм на основе обучения с подкреплением создаст оптимальный план</p>
+                                <p>Выберите алгоритм (обучение с подкреплением или имитация отжига) и настройте параметры для оптимального плана</p>
                             </div>
                             <div class="col-md-4 text-center mb-3">
                                 <div class="step-circle">3</div>

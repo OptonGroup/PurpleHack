@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./web_app/temp:/app/web_app/temp
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped

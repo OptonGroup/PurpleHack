@@ -1,0 +1,3058 @@
+{
+  "requestId": "d6c4b902-c884-4f3f-82f0-88714c68862c",
+  "project": {
+    "id": "7476064025108086785",
+    "projectId": "7476063426289008641",
+    "name": "исходный",
+    "isReadOnly": false,
+    "calendar": "general",
+    "planType": "DRAFT",
+    "lastModifyDate": "2025-02-27T15:22:12.517",
+    "lastModifyUser": null,
+    "publishDate": null,
+    "startDate": "2024-02-05",
+    "createAccObjWorkflowStatusId": null,
+    "lastModifyAccObjWorkflowStatusId": null,
+    "lastTrackerSyncDate": null
+  },
+  "success": true,
+  "tasks": {
+    "rows": [
+      {
+        "children": [
+          {
+            "parentId": "7476064025108086786",
+            "children": [
+              {
+                "parentId": "7476064025108086787",
+                "name": "Аналитика",
+                "startDate": "2024-02-07T15:22:07",
+                "endDate": "2024-02-14T15:22:07",
+                "effort": 5.0,
+                "effortUnit": "d",
+                "duration": 5.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "constraintType": "startnoearlierthan",
+                "constraintDate": "2024-02-07T15:22:07",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 0,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436357",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "e23a6336-e1e0-4552-9545-173e3ca57cd7",
+                "id": "7476064025108086788"
+              },
+              {
+                "parentId": "7476064025108086787",
+                "name": "Разработка",
+                "startDate": "2024-02-14T15:22:07",
+                "endDate": "2024-02-29T15:22:07",
+                "effort": 10.0,
+                "effortUnit": "d",
+                "duration": 10.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 1,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436353",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "df8f4fcd-31dc-4efb-90b3-0be6daedce95",
+                "id": "7476064025108086789"
+              },
+              {
+                "parentId": "7476064025108086787",
+                "name": "Тестирование",
+                "startDate": "2024-02-29T15:22:07",
+                "endDate": "2024-03-07T15:22:07",
+                "effort": 5.0,
+                "effortUnit": "d",
+                "duration": 5.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 2,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436355",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "05bc9b77-167b-45b4-9ab4-a275c5deed2b",
+                "id": "7476064025108086790"
+              }
+            ],
+            "name": "Проект 1",
+            "startDate": "2024-02-07T15:22:07",
+            "endDate": "2024-03-07T15:22:07",
+            "effort": 20.0,
+            "effortUnit": "d",
+            "duration": 20.0,
+            "durationUnit": "d",
+            "percentDone": 0.0,
+            "schedulingMode": "FixedUnits",
+            "manuallyScheduled": false,
+            "effortDriven": false,
+            "parentIndex": 0,
+            "expanded": true,
+            "rollup": false,
+            "inactive": false,
+            "rootTask": false,
+            "isTransferred": false,
+            "priority": 1,
+            "assignmentsUnitsSum": 0.0,
+            "guid": "25f891a3-b244-487d-9880-3ccea45a96ff",
+            "id": "7476064025108086787"
+          },
+          {
+            "parentId": "7476064025108086786",
+            "children": [
+              {
+                "parentId": "7476064025108086791",
+                "name": "Аналитика",
+                "startDate": "2024-02-05T09:00:00",
+                "endDate": "2024-02-16T18:00:00",
+                "effort": 10.0,
+                "effortUnit": "d",
+                "duration": 10.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 0,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436357",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "563a5caf-3bb9-41db-8fe0-e95b0e1242cc",
+                "id": "7476064025108086792"
+              },
+              {
+                "parentId": "7476064025108086791",
+                "name": "Разработка",
+                "startDate": "2024-02-19T09:00:00",
+                "endDate": "2024-03-19T18:00:00",
+                "effort": 20.0,
+                "effortUnit": "d",
+                "duration": 20.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 1,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436353",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "ebe096e2-4858-444d-847f-c7c4a5026c64",
+                "id": "7476064025108086793"
+              },
+              {
+                "parentId": "7476064025108086791",
+                "name": "Тестирование",
+                "startDate": "2024-03-20T09:00:00",
+                "endDate": "2024-04-02T18:00:00",
+                "effort": 10.0,
+                "effortUnit": "d",
+                "duration": 10.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 2,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436355",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "569ce820-e51c-477c-bd8c-3a34e3c4c512",
+                "id": "7476064025108086794"
+              }
+            ],
+            "name": "Проект 2",
+            "startDate": "2024-02-05T09:00:00",
+            "endDate": "2024-04-02T18:00:00",
+            "effort": 40.0,
+            "effortUnit": "d",
+            "duration": 40.0,
+            "durationUnit": "d",
+            "percentDone": 0.0,
+            "schedulingMode": "FixedUnits",
+            "manuallyScheduled": false,
+            "effortDriven": false,
+            "parentIndex": 1,
+            "expanded": true,
+            "rollup": false,
+            "inactive": false,
+            "rootTask": false,
+            "isTransferred": false,
+            "priority": 1,
+            "assignmentsUnitsSum": 0.0,
+            "guid": "637bc23a-28c7-40bd-8ef4-491aaa74035e",
+            "id": "7476064025108086791"
+          },
+          {
+            "parentId": "7476064025108086786",
+            "children": [
+              {
+                "parentId": "7476064025108086795",
+                "name": "Аналитика",
+                "startDate": "2024-02-05T09:00:00",
+                "endDate": "2024-02-26T18:00:00",
+                "effort": 15.0,
+                "effortUnit": "d",
+                "duration": 15.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 0,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436357",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "a248252c-b414-485e-bfad-67965fc7dae0",
+                "id": "7476064025108086796"
+              },
+              {
+                "parentId": "7476064025108086795",
+                "name": "Разработка",
+                "startDate": "2024-02-27T09:00:00",
+                "endDate": "2024-04-09T18:00:00",
+                "effort": 30.0,
+                "effortUnit": "d",
+                "duration": 30.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 1,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436353",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "09d5b831-75e9-48d9-9a1b-b224ffd0454f",
+                "id": "7476064025108086797"
+              },
+              {
+                "parentId": "7476064025108086795",
+                "name": "Тестирование",
+                "startDate": "2024-04-10T09:00:00",
+                "endDate": "2024-05-02T18:00:00",
+                "effort": 15.0,
+                "effortUnit": "d",
+                "duration": 15.0,
+                "durationUnit": "d",
+                "percentDone": 0.0,
+                "schedulingMode": "FixedUnits",
+                "manuallyScheduled": false,
+                "effortDriven": false,
+                "parentIndex": 2,
+                "expanded": true,
+                "rollup": false,
+                "inactive": false,
+                "rootTask": false,
+                "taskKind": {
+                  "entityId": "7392625257454436355",
+                  "rootEntityId": "ai_plan_recalc_mvp"
+                },
+                "isTransferred": false,
+                "priority": 1,
+                "assignmentsUnitsSum": 100.0,
+                "guid": "3f41d0b8-872c-4511-b8e0-2eb6b1b1a889",
+                "id": "7476064025108086798"
+              }
+            ],
+            "name": "Проект 3",
+            "startDate": "2024-02-05T09:00:00",
+            "endDate": "2024-05-02T18:00:00",
+            "effort": 60.0,
+            "effortUnit": "d",
+            "duration": 60.0,
+            "durationUnit": "d",
+            "percentDone": 0.0,
+            "schedulingMode": "FixedUnits",
+            "manuallyScheduled": false,
+            "effortDriven": false,
+            "parentIndex": 2,
+            "expanded": true,
+            "rollup": false,
+            "inactive": false,
+            "rootTask": false,
+            "isTransferred": false,
+            "priority": 1,
+            "assignmentsUnitsSum": 0.0,
+            "guid": "fadefa72-4a18-44f5-a98b-33fe46afbf02",
+            "id": "7476064025108086795"
+          }
+        ],
+        "name": "Хакатон 2025",
+        "startDate": "2024-02-05T09:00:00",
+        "endDate": "2024-05-02T18:00:00",
+        "effort": 120.0,
+        "effortUnit": "d",
+        "duration": 60.0,
+        "durationUnit": "d",
+        "percentDone": 0.0,
+        "schedulingMode": "FixedUnits",
+        "manuallyScheduled": false,
+        "effortDriven": false,
+        "parentIndex": 0,
+        "expanded": true,
+        "rollup": false,
+        "inactive": false,
+        "rootTask": true,
+        "isTransferred": false,
+        "priority": 1,
+        "assignmentsUnitsSum": 0.0,
+        "guid": "b704928d-d0c0-483a-83ec-cab50706973b",
+        "id": "7476064025108086786"
+      }
+    ]
+  },
+  "dependencies": {
+    "rows": [
+      {
+        "fromEvent": "7476064025108086788",
+        "from": "7476064025108086788",
+        "toEvent": "7476064025108086789",
+        "to": "7476064025108086789",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "e894e585-763e-4f69-9161-feb6fbfdb460",
+        "id": "7476064025108086808"
+      },
+      {
+        "fromEvent": "7476064025108086789",
+        "from": "7476064025108086789",
+        "toEvent": "7476064025108086790",
+        "to": "7476064025108086790",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "8b14226b-87de-4bfa-8bb8-9c5564cdef39",
+        "id": "7476064025108086809"
+      },
+      {
+        "fromEvent": "7476064025108086792",
+        "from": "7476064025108086792",
+        "toEvent": "7476064025108086793",
+        "to": "7476064025108086793",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "5fb8d82a-8238-44ce-b8dd-bcc1f72bfeff",
+        "id": "7476064025108086810"
+      },
+      {
+        "fromEvent": "7476064025108086793",
+        "from": "7476064025108086793",
+        "toEvent": "7476064025108086794",
+        "to": "7476064025108086794",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "ce51a9a1-f131-4dc1-89f7-464bb75f15f0",
+        "id": "7476064025108086811"
+      },
+      {
+        "fromEvent": "7476064025108086796",
+        "from": "7476064025108086796",
+        "toEvent": "7476064025108086797",
+        "to": "7476064025108086797",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "23c63a98-345b-4e51-a5e7-f9af19c0c8f1",
+        "id": "7476064025108086812"
+      },
+      {
+        "fromEvent": "7476064025108086797",
+        "from": "7476064025108086797",
+        "toEvent": "7476064025108086798",
+        "to": "7476064025108086798",
+        "lag": 0.0,
+        "lagUnit": "d",
+        "type": 2,
+        "guid": "e044f107-5811-4f01-8e9b-77ed560a7e13",
+        "id": "7476064025108086813"
+      }
+    ]
+  },
+  "calendars": {
+    "rows": [
+      {
+        "id": "general",
+        "name": "General",
+        "expanded": true,
+        "lastSaveDate": "2024-10-01T16:52:43",
+        "isOverriddenDateGrid": false,
+        "intervals": [
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-01T00:00:00",
+            "endDate": "2021-01-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-02T00:00:00",
+            "endDate": "2021-01-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-03T00:00:00",
+            "endDate": "2021-01-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-04T00:00:00",
+            "endDate": "2021-01-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-05T00:00:00",
+            "endDate": "2021-01-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-06T00:00:00",
+            "endDate": "2021-01-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-07T00:00:00",
+            "endDate": "2021-01-08T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-08T00:00:00",
+            "endDate": "2021-01-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-09T00:00:00",
+            "endDate": "2021-01-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-01-10T00:00:00",
+            "endDate": "2021-01-11T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-02-20T00:00:00",
+            "endDate": "2021-02-20T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2021-02-20T09:00:00",
+            "endDate": "2021-02-20T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-02-20T13:00:00",
+            "endDate": "2021-02-20T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2021-02-20T14:00:00",
+            "endDate": "2021-02-20T18:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-02-20T18:00:00",
+            "endDate": "2021-02-21T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-02-22T00:00:00",
+            "endDate": "2021-02-23T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-02-23T00:00:00",
+            "endDate": "2021-02-24T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-03-08T00:00:00",
+            "endDate": "2021-03-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-05-03T00:00:00",
+            "endDate": "2021-05-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-05-10T00:00:00",
+            "endDate": "2021-05-11T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-06-14T00:00:00",
+            "endDate": "2021-06-15T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-11-04T00:00:00",
+            "endDate": "2021-11-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-11-05T00:00:00",
+            "endDate": "2021-11-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2021-12-31T00:00:00",
+            "endDate": "2022-01-01T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-01T00:00:00",
+            "endDate": "2022-01-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-02T00:00:00",
+            "endDate": "2022-01-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-03T00:00:00",
+            "endDate": "2022-01-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-04T00:00:00",
+            "endDate": "2022-01-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-05T00:00:00",
+            "endDate": "2022-01-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-06T00:00:00",
+            "endDate": "2022-01-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-07T00:00:00",
+            "endDate": "2022-01-08T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-08T00:00:00",
+            "endDate": "2022-01-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-01-09T00:00:00",
+            "endDate": "2022-01-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-02-23T00:00:00",
+            "endDate": "2022-02-24T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-03-05T00:00:00",
+            "endDate": "2022-03-05T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2022-03-05T09:00:00",
+            "endDate": "2022-03-05T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-03-05T13:00:00",
+            "endDate": "2022-03-05T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2022-03-05T14:00:00",
+            "endDate": "2022-03-05T18:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-03-05T18:00:00",
+            "endDate": "2022-03-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-03-07T00:00:00",
+            "endDate": "2022-03-08T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-03-08T00:00:00",
+            "endDate": "2022-03-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-05-02T00:00:00",
+            "endDate": "2022-05-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-05-03T00:00:00",
+            "endDate": "2022-05-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-05-09T00:00:00",
+            "endDate": "2022-05-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-05-10T00:00:00",
+            "endDate": "2022-05-11T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-06-13T00:00:00",
+            "endDate": "2022-06-14T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2022-11-04T00:00:00",
+            "endDate": "2022-11-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-01-02T00:00:00",
+            "endDate": "2023-01-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-01-03T00:00:00",
+            "endDate": "2023-01-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-01-04T00:00:00",
+            "endDate": "2023-01-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-01-05T00:00:00",
+            "endDate": "2023-01-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-01-06T00:00:00",
+            "endDate": "2023-01-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-02-23T00:00:00",
+            "endDate": "2023-02-24T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-02-24T00:00:00",
+            "endDate": "2023-02-25T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-03-08T00:00:00",
+            "endDate": "2023-03-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-05-01T00:00:00",
+            "endDate": "2023-05-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-05-08T00:00:00",
+            "endDate": "2023-05-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-05-09T00:00:00",
+            "endDate": "2023-05-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-06-12T00:00:00",
+            "endDate": "2023-06-13T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-11-03T00:00:00",
+            "endDate": "2023-11-03T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2023-11-03T09:00:00",
+            "endDate": "2023-11-03T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-11-03T13:00:00",
+            "endDate": "2023-11-03T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2023-11-03T14:00:00",
+            "endDate": "2023-11-03T17:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-11-03T17:00:00",
+            "endDate": "2023-11-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2023-11-06T00:00:00",
+            "endDate": "2023-11-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-01T00:00:00",
+            "endDate": "2024-01-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-02T00:00:00",
+            "endDate": "2024-01-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-03T00:00:00",
+            "endDate": "2024-01-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-04T00:00:00",
+            "endDate": "2024-01-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-05T00:00:00",
+            "endDate": "2024-01-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-06T00:00:00",
+            "endDate": "2024-01-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-07T00:00:00",
+            "endDate": "2024-01-08T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-08T00:00:00",
+            "endDate": "2024-01-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-01-24T00:00:00",
+            "endDate": "2024-01-25T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-02-23T00:00:00",
+            "endDate": "2024-02-24T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-03-08T00:00:00",
+            "endDate": "2024-03-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-04-27T00:00:00",
+            "endDate": "2024-04-27T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-04-27T09:00:00",
+            "endDate": "2024-04-27T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-04-27T13:00:00",
+            "endDate": "2024-04-27T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-04-27T14:00:00",
+            "endDate": "2024-04-27T18:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-04-27T18:00:00",
+            "endDate": "2024-04-28T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-04-29T00:00:00",
+            "endDate": "2024-04-30T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-04-30T00:00:00",
+            "endDate": "2024-05-01T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-05-01T00:00:00",
+            "endDate": "2024-05-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-05-09T00:00:00",
+            "endDate": "2024-05-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-05-10T00:00:00",
+            "endDate": "2024-05-11T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-06-12T00:00:00",
+            "endDate": "2024-06-13T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-11-02T00:00:00",
+            "endDate": "2024-11-02T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-11-02T09:00:00",
+            "endDate": "2024-11-02T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-11-02T13:00:00",
+            "endDate": "2024-11-02T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-11-02T14:00:00",
+            "endDate": "2024-11-02T18:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-11-02T18:00:00",
+            "endDate": "2024-11-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-11-04T00:00:00",
+            "endDate": "2024-11-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-12-28T00:00:00",
+            "endDate": "2024-12-28T09:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "BEFORE_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-12-28T09:00:00",
+            "endDate": "2024-12-28T13:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_BEFORE_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-12-28T13:00:00",
+            "endDate": "2024-12-28T14:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": true,
+            "name": null,
+            "startDate": "2024-12-28T14:00:00",
+            "endDate": "2024-12-28T18:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "WORK_AFTER_LUNCH"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-12-28T18:00:00",
+            "endDate": "2024-12-29T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKDAY",
+            "overriddenWorkDayTimeInterval": "AFTER_WORK"
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-12-30T00:00:00",
+            "endDate": "2024-12-31T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2024-12-31T00:00:00",
+            "endDate": "2025-01-01T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-01T00:00:00",
+            "endDate": "2025-01-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-02T00:00:00",
+            "endDate": "2025-01-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-03T00:00:00",
+            "endDate": "2025-01-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-04T00:00:00",
+            "endDate": "2025-01-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-05T00:00:00",
+            "endDate": "2025-01-06T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-06T00:00:00",
+            "endDate": "2025-01-07T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-07T00:00:00",
+            "endDate": "2025-01-08T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-01-08T00:00:00",
+            "endDate": "2025-01-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-05-01T00:00:00",
+            "endDate": "2025-05-02T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-05-02T00:00:00",
+            "endDate": "2025-05-03T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-05-08T00:00:00",
+            "endDate": "2025-05-09T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-05-09T00:00:00",
+            "endDate": "2025-05-10T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-06-12T00:00:00",
+            "endDate": "2025-06-13T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-06-13T00:00:00",
+            "endDate": "2025-06-14T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-11-03T00:00:00",
+            "endDate": "2025-11-04T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-11-04T00:00:00",
+            "endDate": "2025-11-05T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": null,
+            "recurrentEndDate": null,
+            "isWorking": false,
+            "name": null,
+            "startDate": "2025-12-31T00:00:00",
+            "endDate": "2026-01-01T00:00:00",
+            "priority": 1000,
+            "recurrentWeekday": null,
+            "workException": "WEEKEND",
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on MONDAY at 0:00 also on MONDAY at 13:00 also on MONDAY at 18:00",
+            "recurrentEndDate": "on MONDAY at 09:00 also on MONDAY at 14:00 also on TUESDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "MONDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on SATURDAY at 0:00",
+            "recurrentEndDate": "on SUNDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "SATURDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on TUESDAY at 0:00 also on TUESDAY at 13:00 also on TUESDAY at 18:00",
+            "recurrentEndDate": "on TUESDAY at 09:00 also on TUESDAY at 14:00 also on WEDNESDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "TUESDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on WEDNESDAY at 0:00 also on WEDNESDAY at 13:00 also on WEDNESDAY at 18:00",
+            "recurrentEndDate": "on WEDNESDAY at 09:00 also on WEDNESDAY at 14:00 also on THURSDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "WEDNESDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on SUNDAY at 0:00",
+            "recurrentEndDate": "on MONDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "SUNDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on FRIDAY at 0:00 also on FRIDAY at 13:00 also on FRIDAY at 18:00",
+            "recurrentEndDate": "on FRIDAY at 09:00 also on FRIDAY at 14:00 also on SATURDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "FRIDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on THURSDAY at 0:00 also on THURSDAY at 13:00 also on THURSDAY at 18:00",
+            "recurrentEndDate": "on THURSDAY at 09:00 also on THURSDAY at 14:00 also on FRIDAY at 0:00",
+            "isWorking": false,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "THURSDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on THURSDAY at 09:00 also on THURSDAY at 14:00",
+            "recurrentEndDate": "on THURSDAY at 13:00 also on THURSDAY at 18:00",
+            "isWorking": true,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "THURSDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on MONDAY at 09:00 also on MONDAY at 14:00",
+            "recurrentEndDate": "on MONDAY at 13:00 also on MONDAY at 18:00",
+            "isWorking": true,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "MONDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on WEDNESDAY at 09:00 also on WEDNESDAY at 14:00",
+            "recurrentEndDate": "on WEDNESDAY at 13:00 also on WEDNESDAY at 18:00",
+            "isWorking": true,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "WEDNESDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on FRIDAY at 09:00 also on FRIDAY at 14:00",
+            "recurrentEndDate": "on FRIDAY at 13:00 also on FRIDAY at 18:00",
+            "isWorking": true,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "FRIDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          },
+          {
+            "recurrentStartDate": "on TUESDAY at 09:00 also on TUESDAY at 14:00",
+            "recurrentEndDate": "on TUESDAY at 13:00 also on TUESDAY at 18:00",
+            "isWorking": true,
+            "name": null,
+            "startDate": null,
+            "endDate": null,
+            "priority": null,
+            "recurrentWeekday": "TUESDAY",
+            "workException": null,
+            "overriddenWorkDayTimeInterval": null
+          }
+        ],
+        "children": []
+      }
+    ]
+  },
+  "resources": {
+    "rows": [
+      {
+        "name": "Аналитик №1 (2000руб/час)",
+        "projectRole": "Аналитик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "ANALYST",
+        "reservePartially": false,
+        "id": "7476063767410049036"
+      },
+      {
+        "name": "Разработчик №1 (2000руб/час)",
+        "projectRole": "Разработчик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "DEVELOPER",
+        "reservePartially": false,
+        "performedTaskKinds": [
+          {
+            "entityId": "development",
+            "rootEntityId": "plan_labor_costs"
+          }
+        ],
+        "id": "7476063767410049032"
+      },
+      {
+        "name": "Разработчик №3 (3000руб/час)",
+        "projectRole": "Разработчик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "DEVELOPER",
+        "reservePartially": false,
+        "performedTaskKinds": [
+          {
+            "entityId": "development",
+            "rootEntityId": "plan_labor_costs"
+          }
+        ],
+        "id": "7476063767410049034"
+      },
+      {
+        "name": "Разработчик №2 (4000руб/час)",
+        "projectRole": "Разработчик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "DEVELOPER",
+        "reservePartially": false,
+        "performedTaskKinds": [
+          {
+            "entityId": "development",
+            "rootEntityId": "plan_labor_costs"
+          }
+        ],
+        "id": "7476063767410049038"
+      },
+      {
+        "subjectId": "E1A057D9-6FC0-11EE-91CF-005056926DF2",
+        "email": "makhnev.p.v@sbertech.ru",
+        "additionalEmail": "pvmakhnev@sberbank.ru",
+        "name": "Махнёв Павел Витальевич",
+        "projectRole": "Владелец продукта",
+        "structUnit": "Дивизион инструментов производственного процесса (Platform V Works)",
+        "calendar": "7473667109415747601",
+        "reservationType": "DEDICATED",
+        "reservationPercent": 100,
+        "reservationStatus": "CONFIRMED",
+        "projectRoleId": "OWNER",
+        "subject": {
+          "id": "E1A057D9-6FC0-11EE-91CF-005056926DF2",
+          "email": "makhnev.p.v@sbertech.ru",
+          "name": "Махнёв Павел Витальевич",
+          "calendar": "7473667109415747601"
+        },
+        "reservePartially": false,
+        "id": "7476063430583975937"
+      },
+      {
+        "name": "Тестировщик №1 (1000руб/час)",
+        "projectRole": "Тестировщик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "TESTER",
+        "reservePartially": false,
+        "performedTaskKinds": [
+          {
+            "entityId": "testing",
+            "rootEntityId": "plan_labor_costs"
+          }
+        ],
+        "id": "7476063767410049026"
+      },
+      {
+        "name": "Тестировщик №2 (1500руб/час)",
+        "projectRole": "Тестировщик",
+        "reservationType": "UNIVERSAL",
+        "reservationPercent": 100,
+        "reservationStatus": "NEW",
+        "projectRoleId": "TESTER",
+        "reservePartially": false,
+        "performedTaskKinds": [
+          {
+            "entityId": "testing",
+            "rootEntityId": "plan_labor_costs"
+          }
+        ],
+        "id": "7476063767410049030"
+      }
+    ]
+  },
+  "assignments": {
+    "rows": [
+      {
+        "event": "7476064025108086788",
+        "resource": "7476063767410049036",
+        "units": 100,
+        "startDate": "2024-02-07T15:22:07",
+        "endDate": "2024-02-14T15:22:07",
+        "currentEffort": 144000000,
+        "guid": "d6f73a0f-4d88-45cf-9d14-e0878bd0f466",
+        "id": "7476064025108086799"
+      },
+      {
+        "event": "7476064025108086792",
+        "resource": "7476063767410049036",
+        "units": 100,
+        "startDate": "2024-02-05T09:00:00",
+        "endDate": "2024-02-16T18:00:00",
+        "currentEffort": 288000000,
+        "guid": "41aad6d9-5a33-4bca-83e0-13b6b1addb52",
+        "id": "7476064025108086800"
+      },
+      {
+        "event": "7476064025108086796",
+        "resource": "7476063767410049036",
+        "units": 100,
+        "startDate": "2024-02-05T09:00:00",
+        "endDate": "2024-02-26T18:00:00",
+        "currentEffort": 432000000,
+        "guid": "cb0029f7-b4f9-4f51-9468-ef330929ee0a",
+        "id": "7476064025108086801"
+      },
+      {
+        "event": "7476064025108086797",
+        "resource": "7476063767410049038",
+        "units": 100,
+        "startDate": "2024-02-27T09:00:00",
+        "endDate": "2024-04-09T18:00:00",
+        "currentEffort": 864000000,
+        "guid": "05452b8b-b17a-44b7-b4d0-1007cad58603",
+        "id": "7476064025108086802"
+      },
+      {
+        "event": "7476064025108086793",
+        "resource": "7476063767410049034",
+        "units": 100,
+        "startDate": "2024-02-19T09:00:00",
+        "endDate": "2024-03-19T18:00:00",
+        "currentEffort": 576000000,
+        "guid": "e2600ca9-d44e-4a59-90c3-5af8cd3be7a2",
+        "id": "7476064025108086803"
+      },
+      {
+        "event": "7476064025108086789",
+        "resource": "7476063767410049032",
+        "units": 100,
+        "startDate": "2024-02-14T15:22:07",
+        "endDate": "2024-02-29T15:22:07",
+        "currentEffort": 288000000,
+        "guid": "b5d10f7d-3a7a-4b31-9dac-861a7e07b83d",
+        "id": "7476064025108086804"
+      },
+      {
+        "event": "7476064025108086794",
+        "resource": "7476063767410049030",
+        "units": 100,
+        "startDate": "2024-03-20T09:00:00",
+        "endDate": "2024-04-02T18:00:00",
+        "currentEffort": 288000000,
+        "guid": "cfc9566b-801d-408e-951f-42240c8a0e35",
+        "id": "7476064025108086805"
+      },
+      {
+        "event": "7476064025108086790",
+        "resource": "7476063767410049030",
+        "units": 100,
+        "startDate": "2024-02-29T15:22:07",
+        "endDate": "2024-03-07T15:22:07",
+        "currentEffort": 144000000,
+        "guid": "74dc5080-c205-454c-bbc5-aa9381e7405c",
+        "id": "7476064025108086806"
+      },
+      {
+        "event": "7476064025108086798",
+        "resource": "7476063767410049030",
+        "units": 100,
+        "startDate": "2024-04-10T09:00:00",
+        "endDate": "2024-05-02T18:00:00",
+        "currentEffort": 432000000,
+        "guid": "67ccee62-af92-4a4b-9ee8-af8b53c40b8a",
+        "id": "7476064025108086807"
+      }
+    ]
+  },
+  "timeRanges": {
+    "rows": []
+  },
+  "keyResults": {
+    "rows": []
+  },
+  "externalIntegrationSources": {
+    "rows": [
+      {
+        "url": "https://jira.sberbank.ru/browse/",
+        "regexp": ".*(jira\\.sberbank\\.ru)/browse/(\\w+-\\d+)",
+        "description": "Для привязки SBTSUPPORT из Jira сигмы",
+        "id": "SBTSUPPORT_SIGMA"
+      }
+    ]
+  },
+  "taskCostCategories": {
+    "rows": [
+      {
+        "id": "adaptation",
+        "name": "Адаптация"
+      },
+      {
+        "id": "modification",
+        "name": "Модификация"
+      },
+      {
+        "id": "implementation",
+        "name": "Внедрение"
+      },
+      {
+        "id": "development",
+        "name": "Разработка"
+      },
+      {
+        "id": "consulting",
+        "name": "Консалтинг"
+      },
+      {
+        "id": "maintenance",
+        "name": "Сопровождение"
+      },
+      {
+        "id": "presale",
+        "name": "Pre-sale"
+      }
+    ]
+  },
+  "additionalFields": {
+    "rows": []
+  },
+  "ganttViewState": {
+    "rows": []
+  },
+  "additionalFieldConfigs": {
+    "rows": []
+  },
+  "accountingObject": {
+    "id": "7476063426289008641",
+    "name": "хакатон",
+    "startDate": "2024-02-01",
+    "endDate": "2025-02-27",
+    "type": "GanttSandbox",
+    "currency": "RUB"
+  },
+  "taskKinds": {
+    "rows": [
+      {
+        "id": "7124286327013703684",
+        "name": "Продажи и продвижение",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Проведениемаркетинговыхмероприятиимитаповикампаниипопродукту",
+        "aggregateRootId": "presale_and_rd_costs",
+        "group": {
+          "id": "presale_and_rd_costs",
+          "name": "Пре-сейл и R&D",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286327013703683",
+        "name": "Устаревший. Разработка материалов, демонстраций, прототипов",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Разработкаматериаловдемонстрациипрототипов",
+        "aggregateRootId": "presale_and_rd_costs",
+        "group": {
+          "id": "presale_and_rd_costs",
+          "name": "Пре-сейл и R&D",
+          "unique": false
+        }
+      },
+      {
+        "id": "nt",
+        "name": "Сборка и тестирование продукта",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "НТ",
+        "aggregateRootId": "general_plan_labor_costs",
+        "group": {
+          "id": "general_plan_labor_costs",
+          "name": "Общие плановые трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "ift",
+        "name": "ИФТ",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "ИФТ",
+        "aggregateRootId": "general_plan_labor_costs",
+        "group": {
+          "id": "general_plan_labor_costs",
+          "name": "Общие плановые трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "7124286327013703686",
+        "name": "Затраты команд по задачам СБТ (WMPD, WMBE и т.д.)",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "ЗатратыкомандпозадачамСБТ(WMPDWMBEит.д.)",
+        "aggregateRootId": "other_costs",
+        "group": {
+          "id": "other_costs",
+          "name": "Прочие затраты",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286322718736390",
+        "name": "Работа с обращениями клиентов",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Инциденты",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286322718736389",
+        "name": "Устаревший. Консультации",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Консультации",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "implementation",
+        "name": "Поддержка ПСИ и ПРОМ клиента",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "ПоддержкаПСИвнедрения",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286327013703681",
+        "name": "Создание и поддержка инструментов и сред производства в рабочем состоянии",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Развертываниеиподдержкаинструментовисредпроизводстваврабочемсостоянии-1",
+        "aggregateRootId": "production_support_costs",
+        "group": {
+          "id": "production_support_costs",
+          "name": "Обеспечение производства",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286327013703688",
+        "name": "Отпуск, больничный",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Отпускбольничныи",
+        "aggregateRootId": "hr_costs",
+        "group": {
+          "id": "hr_costs",
+          "name": "HR",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286327013703689",
+        "name": "Рабочие в выходные дни",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Рабочиеввыходныедни",
+        "aggregateRootId": "hr_costs",
+        "group": {
+          "id": "hr_costs",
+          "name": "HR",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286322718736387",
+        "name": "Разработка и тестирование специфичной для клиента конфигурации продуктовой поставки",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Разработкаитестированиеспецифичноидляклиентаконфигурациипродуктовоипоставки",
+        "aggregateRootId": "client_delivery",
+        "group": {
+          "id": "client_delivery",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286322718736386",
+        "name": "Устаревший. Внедрение",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Внедрение",
+        "aggregateRootId": "client_delivery",
+        "group": {
+          "id": "client_delivery",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "7124286322718736385",
+        "name": "Устаревший. Поддержка ПСИ",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "ПоддержкаПСИ",
+        "aggregateRootId": "client_delivery",
+        "group": {
+          "id": "client_delivery",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "7190412658659360769",
+        "name": "Устаревший. Создание внутренних продуктов - АС (разработки СБТ, не поставляемые клиенту)",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Созданиевнутреннихпродуктов-АС(разработкиСБТнепоставляемыеклиенту)",
+        "aggregateRootId": "production_support_costs",
+        "group": {
+          "id": "production_support_costs",
+          "name": "Обеспечение производства",
+          "unique": false
+        }
+      },
+      {
+        "id": "other_costs",
+        "name": "Прочие затраты",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Прочиезатраты",
+        "aggregateRootId": "other_costs",
+        "group": {
+          "id": "other_costs",
+          "name": "Прочие затраты",
+          "unique": false
+        }
+      },
+      {
+        "id": "architecture",
+        "name": "Архитектурное проектирование",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Архитектура",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "business_analytics",
+        "name": "Устаревший. Бизнес-Аналитика",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Бизнес-Аналитика",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "support",
+        "name": "Поддержка продукта внутренняя",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Поддержка",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "acceptance",
+        "name": "Внутренняя приемка дистрибутива",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Внутренняяприемка",
+        "aggregateRootId": "general_plan_labor_costs",
+        "group": {
+          "id": "general_plan_labor_costs",
+          "name": "Общие плановые трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "development",
+        "name": "Кодирование",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Кодирование",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "testing",
+        "name": "Тестирование компонента",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Тестирование",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "custom_development_work",
+        "name": "Заказные работы по разработке и сопровождению компонент в составе АС банка",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "ЗаказныеработыпоразработкеисопровождениюкомпонентвсоставеАСбанка",
+        "aggregateRootId": "7205945669357731841",
+        "group": {
+          "id": "7205945669357731841",
+          "name": "Заказная разработка",
+          "unique": false
+        }
+      },
+      {
+        "id": "custom_works_external",
+        "name": "Заказные работы внешние",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Заказныеработывнешние",
+        "aggregateRootId": "7205945669357731841",
+        "group": {
+          "id": "7205945669357731841",
+          "name": "Заказная разработка",
+          "unique": false
+        }
+      },
+      {
+        "id": "test1",
+        "name": "Тестовый тип работ 1",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Тестовыитипработ1",
+        "aggregateRootId": "other_costs",
+        "group": {
+          "id": "other_costs",
+          "name": "Прочие затраты",
+          "unique": false
+        }
+      },
+      {
+        "id": "interface_design",
+        "name": "Устаревший. Дизайн интерфейсов",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Дизаининтерфеисов",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "problem_analysis",
+        "name": "Устаревший. Анализ проблемы",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Анализпроблемы",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "technical_debt",
+        "name": "Устаревший. ТехДолг",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "ТехДолг",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289502885696045057",
+        "name": "Митапы, встречи, конференции",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Митапывстречиконференции",
+        "aggregateRootId": "other_costs",
+        "group": {
+          "id": "other_costs",
+          "name": "Прочие затраты",
+          "unique": false
+        }
+      },
+      {
+        "id": "education",
+        "name": "Управление, развитие и обучение персонала",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Обучение",
+        "aggregateRootId": "hr_costs",
+        "group": {
+          "id": "hr_costs",
+          "name": "HR",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289501597806166017",
+        "name": "Задачи непроизводственного персонала",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Задачинепроизводственногоперсонала",
+        "aggregateRootId": "other_costs",
+        "group": {
+          "id": "other_costs",
+          "name": "Прочие затраты",
+          "unique": false
+        }
+      },
+      {
+        "id": "testing_methods_verification",
+        "name": "Проверка кНТ, МНТ, НФТ",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "ПроверкакНТМНТНФТ",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "technical_debt_check",
+        "name": "Проверка техдолга",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Проверкатехдолга",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "installation",
+        "name": "Инсталляция",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Инсталляция",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "ft_checks",
+        "name": "Проверки ФТ/АФТ",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "ПроверкиФТАФТ",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "check_release_policy",
+        "name": "Проверка на соответствие релизной политике",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Проверканасоответствиерелизноиполитике",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "7291260048721969153",
+        "name": "Устаревший. Развертывание и поддержка инструментов и сред производства в рабочем состоянии",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "Развертываниеиподдержкаинструментовисредпроизводстваврабочемсостоянии",
+        "aggregateRootId": "production_support_costs",
+        "group": {
+          "id": "production_support_costs",
+          "name": "Обеспечение производства",
+          "unique": false
+        }
+      },
+      {
+        "id": "7291942106708443137",
+        "name": "Устаревший. Разработка и тестирование специфичной для клиента конфигурации продуктовой поставки",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Разработкаитестированиеспецифичноидляклиентаконфигурациипродуктовоипоставки-1",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7292310543022751745",
+        "name": "Создание и поддержка внутренних АС (разработки СБТ, не поставляемые клиенту)",
+        "taskKindOwner": "STRUCT_UNIT",
+        "trackerWorkTypeMapping": "СозданиеиподдержкавнутреннихАС(разработкиСБТнепоставляемыеклиенту)",
+        "aggregateRootId": "production_support_costs",
+        "group": {
+          "id": "production_support_costs",
+          "name": "Обеспечение производства",
+          "unique": false
+        }
+      },
+      {
+        "id": "general_plan_costs",
+        "name": "Общие затраты релиза",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": null,
+        "aggregateRootId": "general_costs",
+        "group": {
+          "id": "general_costs",
+          "name": "Общие трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "7289499393887633409",
+        "name": "Планирование релиза",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Планированиерелиза",
+        "aggregateRootId": "client_delivery",
+        "group": {
+          "id": "client_delivery",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "express_assessment",
+        "name": "Экспресс-оценка",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Экспресс-оценка",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289500102557237249",
+        "name": "Сопровождение договоров клиента",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Сопровождениедоговоровклиента",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289499733190049793",
+        "name": "Сертификация и лицензирование",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Сертификацияилицензирование",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "analytics",
+        "name": "Аналитика",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Аналитика",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "code_review",
+        "name": "КодРевью",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "КодРевью",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "planing_product_growth",
+        "name": "Развитие продукта",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Планированиеразвитияпродукта",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289501330917883905",
+        "name": "Контроль исполнения",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Контрольисполнения",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7289501764709580801",
+        "name": "Проработка и создание нового продукта",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Проработкаисозданиеновогопродукта",
+        "aggregateRootId": "7205943075197485057",
+        "group": {
+          "id": "7205943075197485057",
+          "name": "Общие трудозатраты продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "output_tests",
+        "name": "Выпускные испытания",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Выпускныеиспытания",
+        "aggregateRootId": "general_plan_labor_costs",
+        "group": {
+          "id": "general_plan_labor_costs",
+          "name": "Общие плановые трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "cyber_security_check",
+        "name": "Внутренняя приемка КБ",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "ПроверкаКБ",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "documentation_check",
+        "name": "Внутренняя приемка документации",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Проверкадокументации",
+        "aggregateRootId": "7209963684049190913",
+        "group": {
+          "id": "7209963684049190913",
+          "name": "Внутренняя приемка",
+          "unique": true
+        }
+      },
+      {
+        "id": "7374123418792361985",
+        "name": "Консультации",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Консультации",
+        "aggregateRootId": "support_product_versions",
+        "group": {
+          "id": "support_product_versions",
+          "name": "Поддержка выпущенных релизов продукта",
+          "unique": false
+        }
+      },
+      {
+        "id": "7392625257454436353",
+        "name": "Разработка (ИИ MVP Планирование)",
+        "taskKindOwner": "GANTT_SANDBOX",
+        "trackerWorkTypeMapping": null,
+        "aggregateRootId": "ai_plan_recalc_mvp",
+        "group": {
+          "id": "ai_plan_recalc_mvp",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "7392625257454436355",
+        "name": "Тестирование (ИИ MVP Планирование)",
+        "taskKindOwner": "GANTT_SANDBOX",
+        "trackerWorkTypeMapping": null,
+        "aggregateRootId": "ai_plan_recalc_mvp",
+        "group": {
+          "id": "ai_plan_recalc_mvp",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "7392625257454436357",
+        "name": "Аналитика (ИИ MVP Планирование)",
+        "taskKindOwner": "GANTT_SANDBOX",
+        "trackerWorkTypeMapping": null,
+        "aggregateRootId": "ai_plan_recalc_mvp",
+        "group": {
+          "id": "ai_plan_recalc_mvp",
+          "name": "Поставка релиза продукта клиенту",
+          "unique": false
+        }
+      },
+      {
+        "id": "bug",
+        "name": "Дефект",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Дефект",
+        "aggregateRootId": "product_versions",
+        "group": {
+          "id": "product_versions",
+          "name": "Виды CR",
+          "unique": false
+        }
+      },
+      {
+        "id": "design",
+        "name": "Устаревший. Проектирование",
+        "taskKindOwner": "PRODUCT",
+        "trackerWorkTypeMapping": "Проектирование",
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "documentation",
+        "name": "Документация",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Документация",
+        "aggregateRootId": "general_plan_labor_costs",
+        "group": {
+          "id": "general_plan_labor_costs",
+          "name": "Общие плановые трудозатраты",
+          "unique": true
+        }
+      },
+      {
+        "id": "evolution",
+        "name": "Развитие",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "Развитие",
+        "aggregateRootId": "product_versions",
+        "group": {
+          "id": "product_versions",
+          "name": "Виды CR",
+          "unique": false
+        }
+      },
+      {
+        "id": "expressEstimation",
+        "name": "Экспресс-оценка(из трекера)",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": null,
+        "aggregateRootId": "plan_labor_costs",
+        "group": {
+          "id": "plan_labor_costs",
+          "name": "Плановые трудозатраты релиза",
+          "unique": false
+        }
+      },
+      {
+        "id": "gos_tech",
+        "name": "ГосТех",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "ГосТех",
+        "aggregateRootId": "product_versions",
+        "group": {
+          "id": "product_versions",
+          "name": "Виды CR",
+          "unique": false
+        }
+      },
+      {
+        "id": "l2p",
+        "name": "L2P",
+        "taskKindOwner": "PRODUCT_VERSION",
+        "trackerWorkTypeMapping": "L2P",
+        "aggregateRootId": "product_versions",
+        "group": {
+          "id": "product_versions",
+          "name": "Виды CR",
+          "unique": false
+        }
+      },
+      {
+        "id": "project",
+        "name": "Проект",
+        "taskKindOwner": "PROJECT",
+        "trackerWorkTypeMapping": "1ПРПроект",
+        "aggregateRootId": "project_costs",
+        "group": {
+          "id": "project_costs",
+          "name": "Проекты",
+          "unique": false
+        }
+      }
+    ]
+  }
+}

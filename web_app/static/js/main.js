@@ -2,11 +2,52 @@
  * Основной JavaScript файл для веб-приложения "Оптимизатор календарного плана"
  */
 
+// Функция для переключения отображения параметров алгоритма имитации отжига
+function toggleAlgorithmParams() {
+    const algorithmSelect = document.getElementById('algorithm');
+    const annealingParams = document.getElementById('annealing-params');
+    const rlParams = document.getElementById('rl-params');
+    
+    // Информационные карточки
+    const rlInfoCard = document.getElementById('rl-info-card');
+    const saInfoCard = document.getElementById('sa-info-card');
+    
+    if (algorithmSelect && annealingParams && rlParams) {
+        if (algorithmSelect.value === 'simulated_annealing') {
+            // Показываем параметры SA и скрываем параметры RL
+            annealingParams.style.display = 'block';
+            rlParams.style.display = 'none';
+            
+            // Показываем карточку SA и скрываем карточку RL
+            if (rlInfoCard) rlInfoCard.style.display = 'none';
+            if (saInfoCard) saInfoCard.style.display = 'block';
+        } else {
+            // Показываем параметры RL и скрываем параметры SA
+            annealingParams.style.display = 'none';
+            rlParams.style.display = 'block';
+            
+            // Показываем карточку RL и скрываем карточку SA
+            if (rlInfoCard) rlInfoCard.style.display = 'block';
+            if (saInfoCard) saInfoCard.style.display = 'none';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Инициализация всплывающих подсказок Bootstrap
     var tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     if (tooltips.length > 0) {
         Array.from(tooltips).map(tooltip => new bootstrap.Tooltip(tooltip));
+    }
+    
+    // Инициализация переключателя параметров алгоритма
+    const algorithmSelect = document.getElementById('algorithm');
+    if (algorithmSelect) {
+        // Устанавливаем начальное состояние
+        toggleAlgorithmParams();
+        
+        // Обработчик события изменения
+        algorithmSelect.addEventListener('change', toggleAlgorithmParams);
     }
 
     // Форма загрузки файла
@@ -46,13 +87,36 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.is_valid) {
                     // Если файл валидный, отправляем на оптимизацию
+                    const algorithm = document.getElementById('algorithm').value;
+                    
+                    // Основные параметры оптимизации
                     const optimizationParams = {
                         duration_weight: parseFloat(document.getElementById('duration_weight').value),
                         resource_weight: parseFloat(document.getElementById('resource_weight').value),
                         cost_weight: parseFloat(document.getElementById('cost_weight').value),
-                        num_episodes: parseInt(document.getElementById('num_episodes').value),
-                        use_pretrained_model: document.getElementById('use_pretrained_model').checked
+                        use_pretrained_model: document.getElementById('use_pretrained_model').checked,
+                        algorithm: algorithm
                     };
+                    
+                    // Если выбран RL, добавляем его параметры
+                    if (algorithm === 'reinforcement_learning') {
+                        optimizationParams.num_episodes = parseInt(document.getElementById('num_episodes').value);
+                        // Добавляем новые параметры RL
+                        if (document.getElementById('learning_rate')) {
+                            optimizationParams.learning_rate = parseFloat(document.getElementById('learning_rate').value);
+                        }
+                        if (document.getElementById('gamma')) {
+                            optimizationParams.gamma = parseFloat(document.getElementById('gamma').value);
+                        }
+                    }
+                    // Если выбран алгоритм имитации отжига, добавляем его параметры
+                    else if (algorithm === 'simulated_annealing') {
+                        optimizationParams.initial_temperature = parseFloat(document.getElementById('initial_temperature').value);
+                        optimizationParams.cooling_rate = parseFloat(document.getElementById('cooling_rate').value);
+                        optimizationParams.min_temperature = parseFloat(document.getElementById('min_temperature').value);
+                        optimizationParams.iterations_per_temp = parseInt(document.getElementById('iterations_per_temp').value);
+                        optimizationParams.max_iterations = parseInt(document.getElementById('max_iterations').value);
+                    }
                     
                     // Чтение файла как JSON
                     const reader = new FileReader();

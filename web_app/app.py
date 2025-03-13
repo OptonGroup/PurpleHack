@@ -8,6 +8,7 @@
 import os
 import json
 import logging
+import uuid
 from typing import Dict, Any, List, Optional, Union
 from fastapi import FastAPI, Request, Form, UploadFile, File, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, JSONResponse
@@ -17,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 # Импортируем API оптимизатора
-from optimizer_api import (
+from web_app.optimizer_api import (
     validate_input_json, 
     optimize_plan,
     get_optimization_status,
@@ -75,6 +76,16 @@ class OptimizationRequest(BaseModel):
     num_episodes: int = Field(500, description="Количество эпизодов обучения")
     use_pretrained_model: bool = Field(False, description="Использовать предобученную модель")
     model_path: Optional[str] = Field(None, description="Путь к предобученной модели")
+    algorithm: str = Field("reinforcement_learning", description="Алгоритм оптимизации")
+    # Параметры для алгоритма обучения с подкреплением
+    learning_rate: float = Field(0.001, description="Темп обучения для алгоритма обучения с подкреплением")
+    gamma: float = Field(0.99, description="Коэффициент дисконтирования для алгоритма обучения с подкреплением")
+    # Параметры для алгоритма имитации отжига
+    initial_temperature: float = Field(100.0, description="Начальная температура для алгоритма имитации отжига")
+    cooling_rate: float = Field(0.95, description="Скорость охлаждения для алгоритма имитации отжига")
+    min_temperature: float = Field(0.1, description="Минимальная температура для алгоритма имитации отжига")
+    iterations_per_temp: int = Field(100, description="Количество итераций на каждой температуре для алгоритма имитации отжига")
+    max_iterations: int = Field(10000, description="Максимальное количество итераций для алгоритма имитации отжига")
 
 class ValidationResponse(BaseModel):
     """Модель для ответа на валидацию JSON"""
@@ -169,29 +180,32 @@ async def optimize_json(
     request: OptimizationRequest
 ):
     """
-    Запускает оптимизацию плана проекта
+    API для запуска оптимизации JSON-данных.
     """
-    try:
-        # Получаем идентификатор задачи
-        job_id = optimize_plan(
-            data=request.data,
-            duration_weight=request.duration_weight,
-            resource_weight=request.resource_weight,
-            cost_weight=request.cost_weight,
-            num_episodes=request.num_episodes,
-            use_pretrained_model=request.use_pretrained_model,
-            model_path=request.model_path,
-            background_tasks=background_tasks
-        )
-        
-        return {"job_id": job_id, "status": "pending"}
+    # Запускаем оптимизацию
+    job_id = optimize_plan(
+        data=request.data,
+        duration_weight=request.duration_weight,
+        resource_weight=request.resource_weight,
+        cost_weight=request.cost_weight,
+        num_episodes=request.num_episodes,
+        use_pretrained_model=request.use_pretrained_model,
+        model_path=request.model_path,
+        background_tasks=background_tasks,
+        algorithm=request.algorithm,
+        # Параметры для алгоритма обучения с подкреплением
+        learning_rate=request.learning_rate,
+        gamma=request.gamma,
+        # Параметры для алгоритма имитации отжига
+        initial_temperature=request.initial_temperature,
+        cooling_rate=request.cooling_rate,
+        min_temperature=request.min_temperature,
+        iterations_per_temp=request.iterations_per_temp,
+        max_iterations=request.max_iterations
+    )
     
-    except Exception as e:
-        logger.exception("Ошибка при запуске оптимизации")
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+    # Возвращаем ID задачи
+    return {"job_id": job_id, "status": "pending"}
 
 @app.get("/api/status/{job_id}")
 async def get_status(job_id: str):
@@ -281,66 +295,61 @@ async def upload_file(
     resource_weight: float = Form(3.0),
     cost_weight: float = Form(1.0),
     num_episodes: int = Form(500),
-    use_pretrained_model: bool = Form(False)
+    use_pretrained_model: bool = Form(False),
+    algorithm: str = Form("reinforcement_learning"),
+    initial_temperature: float = Form(100.0),
+    cooling_rate: float = Form(0.95),
+    min_temperature: float = Form(0.1),
+    iterations_per_temp: int = Form(100),
+    max_iterations: int = Form(10000)
 ):
     """
-    Загружает файл и запускает оптимизацию
+    Загружает файл JSON и запускает оптимизацию.
     """
-    try:
-        # Сохраняем файл во временную директорию
-        temp_file_path = os.path.join(TEMP_DIR, file.filename)
-        with open(temp_file_path, "wb") as f:
-            f.write(await file.read())
-        
-        # Валидируем JSON
-        is_valid, errors, warnings = validate_input_json(temp_file_path)
-        
-        if not is_valid:
-            return templates.TemplateResponse(
-                "index.html", 
-                {
-                    "request": request,
-                    "errors": errors,
-                    "warnings": warnings
-                }
-            )
-        
-        # Загружаем данные из файла
-        with open(temp_file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        
-        # Выбираем модель, если требуется
-        model_path = None
-        if use_pretrained_model:
-            # Здесь нужно реализовать выбор модели
-            # Пока используем заглушку
-            model_path = None
-        
-        # Запускаем оптимизацию
-        job_id = optimize_plan(
-            data=data,
-            duration_weight=duration_weight,
-            resource_weight=resource_weight,
-            cost_weight=cost_weight,
-            num_episodes=num_episodes,
-            use_pretrained_model=use_pretrained_model,
-            model_path=model_path,
-            background_tasks=background_tasks
-        )
-        
-        # Перенаправляем на страницу с результатом
-        return RedirectResponse(url=f"/result/{job_id}", status_code=303)
+    # Создаем временный файл для сохранения загруженного JSON
+    temp_file = os.path.join(TEMP_DIR, f"upload_{uuid.uuid4()}.json")
     
-    except Exception as e:
-        logger.exception("Ошибка при загрузке файла")
+    # Сохраняем загруженный файл
+    with open(temp_file, "wb") as f:
+        f.write(await file.read())
+    
+    # Проверяем файл на валидность
+    is_valid, errors, warnings = validate_input_json(temp_file)
+    
+    if not is_valid:
+        # Если файл невалидный, возвращаем ошибки
+        os.remove(temp_file)  # Удаляем временный файл
         return templates.TemplateResponse(
-            "index.html", 
-            {
-                "request": request,
-                "errors": [f"Ошибка при загрузке файла: {str(e)}"],
-                "warnings": []
-            }
+            "index.html",
+            {"request": request, "error": "Ошибка валидации файла", "details": errors}
         )
+    
+    # Загружаем JSON
+    with open(temp_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    # Удаляем временный файл
+    os.remove(temp_file)
+    
+    # Запускаем оптимизацию
+    job_id = optimize_plan(
+        data=data,
+        duration_weight=duration_weight,
+        resource_weight=resource_weight,
+        cost_weight=cost_weight,
+        num_episodes=num_episodes,
+        use_pretrained_model=use_pretrained_model,
+        background_tasks=background_tasks,
+        algorithm=algorithm,
+        initial_temperature=initial_temperature,
+        cooling_rate=cooling_rate,
+        min_temperature=min_temperature,
+        iterations_per_temp=iterations_per_temp,
+        max_iterations=max_iterations
+    )
+    
+    # Перенаправляем на страницу статуса
+    return RedirectResponse(url=f"/result/{job_id}", status_code=303)
 
 # Запуск приложения
 if __name__ == "__main__":
