@@ -173,12 +173,17 @@ async def result_page(request: Request, job_id: str):
             # Проверяем, нужно ли восстановить оригинальную структуру
             if job_id == request.session.get("optimization_job_id"):
                 original_structure = request.session.get("original_structure")
+                structure_info = request.session.get("structure_info", {})
+                tasks_key = structure_info.get("tasks_key", "tasks")
+                
                 if original_structure:
-                    # Заменяем только tasks в оригинальной структуре
-                    original_structure["tasks"] = optimized_data.get("tasks", [])
+                    # Заменяем только задачи в оригинальной структуре с правильным ключом
+                    original_structure[tasks_key] = optimized_data.get("tasks", [])
                     result_data = original_structure
                 else:
                     result_data = optimized_data
+            else:
+                result_data = optimized_data
                 
         except Exception as e:
             logger.error(f"Ошибка при чтении результата: {str(e)}")
@@ -189,7 +194,8 @@ async def result_page(request: Request, job_id: str):
             "request": request, 
             "job_id": job_id, 
             "status": status,
-            "result": result_data
+            "result": result_data,
+            "plan_data": result_data  # Добавляем plan_data для совместимости с шаблоном календаря
         }
     )
 
@@ -507,7 +513,18 @@ async def optimize_server_plan(
     data_source: str = Form(None),
     json_file: UploadFile = File(None),
     plan_data: str = Form(None),
-    original_structure: bool = Form(True)
+    original_structure: bool = Form(True),
+    algorithm: str = Form("reinforcement_learning"),
+    duration_weight: float = Form(7.0),
+    resource_weight: float = Form(3.0), 
+    cost_weight: float = Form(1.0),
+    num_episodes: int = Form(500),
+    use_pretrained_model: bool = Form(False),
+    initial_temperature: float = Form(100.0),
+    cooling_rate: float = Form(0.95),
+    min_temperature: float = Form(0.1),
+    iterations_per_temp: int = Form(100),
+    max_iterations: int = Form(10000)
 ):
     """
     Оптимизация плана, загруженного с сервера или из файла
@@ -559,12 +576,18 @@ async def optimize_server_plan(
         original_data = data.copy()
         
         # Получаем задачи из данных (учитываем разные возможные форматы)
-        tasks = data.get("tasks", [])
-        if not tasks and isinstance(data, dict):
+        tasks = []
+        tasks_key = ""  # Для запоминания ключа, где находятся задачи
+        
+        if "tasks" in data:
+            tasks = data.get("tasks", [])
+            tasks_key = "tasks"
+        else:
             # Ищем задачи в других возможных местах структуры
             for key, value in data.items():
                 if isinstance(value, list) and value and isinstance(value[0], dict) and "id" in value[0]:
                     tasks = value
+                    tasks_key = key
                     break
         
         if not tasks:
@@ -578,9 +601,20 @@ async def optimize_server_plan(
         
         # Проверяем наличие ресурсов и добавляем их, если нет
         resources = []
+        resources_key = ""
+        
         # Сначала ищем ресурсы в данных
         if "resources" in data:
             resources = data.get("resources", [])
+            resources_key = "resources"
+        else:
+            # Ищем ресурсы в других возможных местах структуры
+            for key, value in data.items():
+                if (isinstance(value, list) and value and isinstance(value[0], dict) and 
+                    ("capacity" in value[0] or "name" in value[0]) and key != tasks_key):
+                    resources = value
+                    resources_key = key
+                    break
         
         # Если ресурсов нет, собираем уникальные ресурсы из задач
         if not resources:
@@ -598,6 +632,18 @@ async def optimize_server_plan(
                     "name": f"Ресурс {resource_id}",
                     "capacity": 1
                 })
+            
+            # Если ресурсы были созданы, но ключ не определен, используем "resources"
+            if resources and not resources_key:
+                resources_key = "resources"
+                # Добавляем ресурсы в исходную структуру
+                original_data[resources_key] = resources
+        
+        # Сохраняем информацию о структуре в сессии
+        request.session["structure_info"] = {
+            "tasks_key": tasks_key,
+            "resources_key": resources_key
+        }
         
         # Создаем запрос на оптимизацию
         optimization_request = OptimizationRequest(
@@ -605,12 +651,17 @@ async def optimize_server_plan(
                 "tasks": tasks,
                 "resources": resources
             },
-            duration_weight=7.0,
-            resource_weight=3.0,
-            cost_weight=1.0,
-            num_episodes=500,
-            use_pretrained_model=False,
-            algorithm="reinforcement_learning"
+            duration_weight=duration_weight,
+            resource_weight=resource_weight,
+            cost_weight=cost_weight,
+            num_episodes=num_episodes,
+            use_pretrained_model=use_pretrained_model,
+            algorithm=algorithm,
+            initial_temperature=initial_temperature,
+            cooling_rate=cooling_rate,
+            min_temperature=min_temperature,
+            iterations_per_temp=iterations_per_temp,
+            max_iterations=max_iterations
         )
         
         # Запускаем оптимизацию
