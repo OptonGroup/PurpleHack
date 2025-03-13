@@ -1,6 +1,6 @@
-# Запуск TelecomGuardian с использованием Docker
+# Запуск с использованием Docker
+![image](https://github.com/user-attachments/assets/2fdbf113-276d-4361-8150-c15321c618c0)
 
-Данный документ содержит инструкции по запуску системы обнаружения аномалий TelecomGuardian в контейнере Docker.
 
 ## Предварительные требования
 
