@@ -57,6 +57,9 @@ docker run -p 8000:8000 project-optimizer
 ```bash
 docker-compose up -d
 ```
+```
+docker run -d --name purple-optimizer -p 8000:8000 chipinkoskin/purple-hack-optimizer
+```
 
 ## 🚀 Использование
 
