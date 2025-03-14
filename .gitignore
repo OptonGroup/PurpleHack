@@ -4,3 +4,7 @@
 /data
 /psx
 /tasks/Arenadata/telecom100k/*
+*/clients
+tasks/Arenadata/clients/*
+*__pycache__*
+*venv*

@@ -33,11 +33,11 @@ def load_client_dataframes(dir='telecom100k/psx', num_files=None):
     if num_files is None:
         num_files = len(all_files)
     
-    # Выбираем нужное количество файлов
-    selected_files = all_files[:num_files]
+    # Выбираем нужное количество файлов, каждый второй
+    selected_files = all_files[:num_files:2]
     
     dataframes = []
-    print(f"Загружаем {num_files} файлов из {len(all_files)}")
+    print(f"Загружаем {len(selected_files)} файлов из {len(all_files)}")
     for file_path in tqdm(selected_files):
         try:
             if file_path.endswith('.csv'):

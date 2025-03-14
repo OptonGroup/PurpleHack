@@ -39,6 +39,7 @@ ENV/
 .vscode/
 *.swp
 *.swo
+.telecom100k/
 
 # Большие CSV файлы (если не нужны в контейнере)
 # RESULT.csv

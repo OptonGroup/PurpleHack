@@ -248,5 +248,9 @@ def reject_anomaly(uid):
             'message': str(e)
         })
 
+
 if __name__ == '__main__':
-    app.run(debug=False, host='0.0.0.0', port=5000) 
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    debug_mode = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't')
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
