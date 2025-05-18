@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  telecomguardian:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telecomguardian
+    # Добавление ограничений ресурсов для выделения большего количества памяти
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+        reservations:
+          memory: 32G
+    volumes:
+      # Монтирование внешней директории для данных телекома
+      - ./telecom100k:/app/telecom100k
+      # Монтирование директорий для сохранения результатов
+      - ./data_output:/app/data_output
+      # Монтирование директории clients для сохранения обработанных данных
+      - clients_data:/app/clients
+      # Монтирование дополнительных директорий
+      - clients_showcase_data:/app/clients_showcase
+      - clients_shocases_per_time_data:/app/clients_shocases_per_time
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=frontend_pred/server.py
+      - FLASK_ENV=production
+      # Настройки для Python, чтобы лучше управлять памятью
+      - PYTHONUNBUFFERED=1
+      - PYTHONMALLOC=debug
+    restart: unless-stopped
+    command: python frontend_pred/server.py
+
+# Определение персистентных volumes для сохранения данных между перезапусками контейнера
+volumes:
+  clients_data:
+  clients_showcase_data:
+  clients_shocases_per_time_data: 
