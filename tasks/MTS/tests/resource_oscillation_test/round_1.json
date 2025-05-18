@@ -1,0 +1,25 @@
+{
+    "hosts": {
+        "oscillator_1": {"cpu": 19, "ram": 38},
+        "oscillator_2": {"cpu": 38, "ram": 76},
+        "oscillator_3": {"cpu": 57, "ram": 114},
+        "oscillator_4": {"cpu": 76, "ram": 152},
+        "oscillator_5": {"cpu": 95, "ram": 190},
+        "stable_host_1": {"cpu": 32, "ram": 64},
+        "stable_host_2": {"cpu": 32, "ram": 64},
+        "stable_host_3": {"cpu": 32, "ram": 64}
+    },
+    "virtual_machines": {
+        "base_vm": {"cpu": 4, "ram": 8}
+    },
+    "allocations": {
+        "oscillator_1": [],
+        "oscillator_2": [],
+        "oscillator_3": [],
+        "oscillator_4": [],
+        "oscillator_5": [],
+        "stable_host_1": ["base_vm"],
+        "stable_host_2": [],
+        "stable_host_3": []
+    }
+} 

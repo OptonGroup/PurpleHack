@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Другие
+.DS_Store
+.env
+.venv
+venv/
+ENV/
+.idea/
+.vscode/
+*.swp
+*.swo
+.telecom100k/
+
+# Большие CSV файлы (если не нужны в контейнере)
+# RESULT.csv
+# probably_hacked.csv
+# already_hacked.csv 

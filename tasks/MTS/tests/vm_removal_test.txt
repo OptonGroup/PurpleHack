@@ -1,0 +1,5 @@
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{"vm1":{"cpu":10,"ram":128},"vm2":{"cpu":12,"ram":256},"vm3":{"cpu":15,"ram":300}},"diff":{"add":{"virtual_machines":["vm1","vm2","vm3"]}}}
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{"vm2":{"cpu":12,"ram":256},"vm3":{"cpu":15,"ram":300}},"diff":{"remove":{"virtual_machines":["vm1"]}}}
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{"vm3":{"cpu":15,"ram":300}},"diff":{"remove":{"virtual_machines":["vm2"]}}}
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{},"diff":{"remove":{"virtual_machines":["vm3"]}}}
+{"hosts":{"host1":{"cpu":24,"ram":512},"host2":{"cpu":32,"ram":768}},"virtual_machines":{"vm4":{"cpu":6,"ram":32}},"diff":{"add":{"virtual_machines":["vm4"]}}}
