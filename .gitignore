@@ -2,7 +2,6 @@
 *.env
 *.jpg
 *.webp
-*.png
 *.jpeg
 *.gif
 *.bmp
