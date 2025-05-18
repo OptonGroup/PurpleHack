@@ -1,0 +1,25 @@
+# Игнорируем все файлы, кроме необходимых для работы
+*
+!solution.py
+!run.sh
+
+# Игнорируем системные файлы
+.git
+.gitignore
+.vscode
+.idea
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dylib
+*.egg-info
+
+# Исключаем кэш Python и другие временные файлы
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.pytest_cache/
+**/.coverage
+**/.DS_Store
