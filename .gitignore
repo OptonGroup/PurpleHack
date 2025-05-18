@@ -1,5 +1,14 @@
 /venv
-.env
+*.env
+*.jpg
+*.webp
+*.png
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.ico
+*data
 
 .venv
 /data
