@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TelecomGuardian - Панель мониторинга</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo-container">
+                <img src="shield-icon.svg" alt="TelecomGuardian Logo" class="logo">
+                <h1>TelecomGuardian</h1>
+            </div>
+            <div class="header-actions">
+                <button id="refreshBtn" class="action-button">
+                    <span class="icon">⟳</span> Обновить данные
+                </button>
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Система активна</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <div class="sidebar">
+                <div class="widget summary-widget">
+                    <h3>Сводка по аномалиям</h3>
+                    <div class="stats-container">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalAnomalies">0</div>
+                            <div class="stat-label">Всего аномалий</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="confirmedHacks">0</div>
+                            <div class="stat-label">Подтверждено</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="potentialHacks">0</div>
+                            <div class="stat-label">Потенциальные</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="widget filter-widget">
+                    <h3>Фильтры</h3>
+                    <div class="filter-group">
+                        <label for="userTypeFilter">Тип пользователя</label>
+                        <select id="userTypeFilter" class="filter-select">
+                            <option value="all">Все типы</option>
+                            <option value="P">Физические лица (P)</option>
+                            <option value="J">Юридические лица (J)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="statusFilter">Статус</label>
+                        <select id="statusFilter" class="filter-select">
+                            <option value="all">Все статусы</option>
+                            <option value="confirmed">Подтверждённые</option>
+                            <option value="potential">Потенциальные</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="trafficFilter">Объем трафика</label>
+                        <div class="range-filter">
+                            <input type="range" id="trafficFilter" min="0" max="100" value="0">
+                            <span id="trafficValue">Все</span>
+                        </div>
+                    </div>
+                    <button id="applyFilters" class="filter-button">Применить фильтры</button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="widget chart-widget">
+                    <h3>Динамика обнаружения аномалий</h3>
+                    <div class="chart-container">
+                        <canvas id="anomalyTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="widget table-widget">
+                    <div class="table-header">
+                        <h3>Список выявленных аномалий</h3>
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Поиск по ID...">
+                            </div>
+                            <select id="sortSelect" class="sort-select">
+                                <option value="time_desc">По времени (новые)</option>
+                                <option value="time_asc">По времени (старые)</option>
+                                <option value="traffic_desc">По трафику (больше)</option>
+                                <option value="traffic_asc">По трафику (меньше)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="anomalyTable">
+                            <thead>
+                                <tr>
+                                    <th>ID Сессии</th>
+                                    <th>UID</th>
+                                    <th>Тип</th>
+                                    <th>Тарифный план</th>
+                                    <th>Статус</th>
+                                    <th>Трафик</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="anomalyTableBody">
+                                <!-- Данные будут добавлены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <button id="prevPage" class="page-button">&lt;</button>
+                        <span id="pageIndicator">Страница 1 из 1</span>
+                        <button id="nextPage" class="page-button">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Детали аномалии</h2>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-info">
+                        <div class="detail-row">
+                            <div class="detail-label">ID Сессии:</div>
+                            <div class="detail-value" id="detailId"></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">UID:</div>
+                            <div class="detail-value" id="detailUid"></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Тип пользователя:</div>
+                            <div class="detail-value" id="detailType"></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Тарифный план:</div>
+                            <div class="detail-value" id="detailPlan"></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Статус активации:</div>
+                            <div class="detail-value" id="detailStatus"></div>
+                        </div>
+                        <div class="detail-row">
+                            <div class="detail-label">Объем трафика:</div>
+                            <div class="detail-value" id="detailTraffic"></div>
+                        </div>
+                    </div>
+                    <div class="visualization">
+                        <h3>Анализ поведения</h3>
+                        <canvas id="behaviorChart"></canvas>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="confirmAnomaly" class="action-button confirm">Подтвердить взлом</button>
+                        <button id="falsePositive" class="action-button reject">Ложное срабатывание</button>
+                        <button id="investigateMore" class="action-button investigate">Дополнительное расследование</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,39 @@
+{
+    "hosts": {
+        "cpu_optimized": {"cpu": 32, "ram": 16, "disk": 200},
+        "ram_optimized": {"cpu": 16, "ram": 64, "disk": 200},
+        "storage_optimized": {"cpu": 16, "ram": 32, "disk": 1000},
+        "balanced": {"cpu": 16, "ram": 32, "disk": 400}
+    },
+    "virtual_machines": {
+        "cpu_heavy_1": {"cpu": 16, "ram": 8, "disk": 100},
+        "ram_heavy_1": {"cpu": 8, "ram": 32, "disk": 100},
+        "storage_heavy_1": {"cpu": 8, "ram": 16, "disk": 500},
+        "balanced_1": {"cpu": 8, "ram": 16, "disk": 200},
+        "cpu_heavy_2": {"cpu": 16, "ram": 8, "disk": 100},
+        "ram_heavy_2": {"cpu": 8, "ram": 32, "disk": 100},
+        "storage_heavy_2": {"cpu": 8, "ram": 16, "disk": 400},
+        "mixed_1": {"cpu": 12, "ram": 24, "disk": 300},
+        "mixed_2": {"cpu": 12, "ram": 24, "disk": 300},
+        "cpu_heavy_3": {"cpu": 16, "ram": 8, "disk": 100},
+        "cpu_heavy_4": {"cpu": 16, "ram": 8, "disk": 100},
+        "ram_heavy_3": {"cpu": 8, "ram": 32, "disk": 100},
+        "ram_heavy_4": {"cpu": 8, "ram": 32, "disk": 100},
+        "storage_heavy_3": {"cpu": 8, "ram": 16, "disk": 600},
+        "storage_heavy_4": {"cpu": 8, "ram": 16, "disk": 400}
+    },
+    "allocations": {
+        "cpu_optimized": ["cpu_heavy_1", "cpu_heavy_2", "cpu_heavy_3"],
+        "ram_optimized": ["ram_heavy_1", "ram_heavy_2", "ram_heavy_3", "ram_heavy_4"],
+        "storage_optimized": ["storage_heavy_1", "storage_heavy_2"],
+        "balanced": ["balanced_1", "mixed_1", "mixed_2", "cpu_heavy_4"]
+    },
+    "diff": {
+        "add": {
+            "virtual_machines": {
+                "storage_heavy_3": {"cpu": 8, "ram": 16, "disk": 600},
+                "storage_heavy_4": {"cpu": 8, "ram": 16, "disk": 400}
+            }
+        }
+    }
+} 
